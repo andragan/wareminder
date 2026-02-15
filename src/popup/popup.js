@@ -384,8 +384,6 @@
    */
   async function openChat(chatId, chatName) {
     try {
-      console.log('[WAReminder][openChat] called with chatId:', chatId, 'chatName:', chatName, 'type:', typeof chatId);
-
       const isJid = chatId.endsWith('@c.us') || chatId.endsWith('@g.us');
       let url;
 
@@ -393,11 +391,9 @@
         // Real JID for individual chat — deep-link with phone number
         const phone = chatId.replace('@c.us', '');
         url = `https://web.whatsapp.com/send?phone=${phone}`;
-        console.log('[WAReminder][openChat] JID chat, phone:', phone, 'url:', url);
       } else if (isJid && chatId.endsWith('@g.us')) {
         // Group JID — can't deep-link, just open WhatsApp
         url = 'https://web.whatsapp.com';
-        console.log('[WAReminder][openChat] group JID, opening WA home');
       } else {
         // Slug fallback — chatId is not a real JID
         // Open WhatsApp Web; user will need to find the chat manually
@@ -408,16 +404,12 @@
 
       // Find or create WhatsApp tab
       const tabs = await chrome.tabs.query({ url: 'https://web.whatsapp.com/*' });
-      console.log('[WAReminder][openChat] existing WA tabs:', tabs.length, tabs.map(t => ({ id: t.id, url: t.url })));
       if (tabs.length > 0) {
-        console.log('[WAReminder][openChat] updating existing tab', tabs[0].id);
         await chrome.tabs.update(tabs[0].id, { url, active: true });
         await chrome.windows.update(tabs[0].windowId, { focused: true });
       } else {
-        console.log('[WAReminder][openChat] creating new tab');
         await chrome.tabs.create({ url, active: true });
       }
-      console.log('[WAReminder][openChat] done');
     } catch (err) {
       console.error('[WAReminder][openChat] Failed to open chat:', err, 'chatId was:', chatId);
     }

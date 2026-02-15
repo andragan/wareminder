@@ -43,7 +43,6 @@
       const phoneParam = urlParams.get('phone');
       if (phoneParam) {
         chatId = `${phoneParam}@c.us`;
-        console.log('[WAReminder] chatId from URL phone param:', chatId);
       }
 
       // Strategy 2: Look for data-id attributes on conversation elements
@@ -58,7 +57,6 @@
           const jidMatch = dataId && dataId.match(/(\d+@[cg]\.us)/);
           if (jidMatch) {
             chatId = jidMatch[1];
-            console.log('[WAReminder] chatId from data-id attribute:', chatId);
           }
         }
       }
@@ -71,7 +69,6 @@
           const jidMatch = dataId && dataId.match(/(\d+@[cg]\.us)/);
           if (jidMatch) {
             chatId = jidMatch[1];
-            console.log('[WAReminder] chatId from message data-id:', chatId);
             break;
           }
         }
@@ -89,7 +86,6 @@
           if (phoneMatch) {
             const cleanPhone = phoneMatch[1].replace(/[\s-]/g, '');
             chatId = `${cleanPhone}@c.us`;
-            console.log('[WAReminder] chatId from header subtitle phone:', chatId);
           }
         }
       }
