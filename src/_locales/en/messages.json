@@ -58,10 +58,11 @@
     }
   },
   "notificationBody": {
-    "message": "Time to follow up with $CONTACT$",
-    "description": "Notification body text",
+    "message": "Time to follow up with $CONTACT$ \u2014 scheduled for $TIME$",
+    "description": "Notification body text with scheduled time",
     "placeholders": {
-      "contact": { "content": "$1", "example": "John Doe" }
+      "contact": { "content": "$1", "example": "John Doe" },
+      "time": { "content": "$2", "example": "Feb 16, 2026 at 3:00 PM" }
     }
   },
   "popupTitle": {

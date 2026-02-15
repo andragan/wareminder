@@ -19,8 +19,8 @@
     {
       "matches": ["*://web.whatsapp.com/*"],
       "js": [
-        "content/chat-observer.js",
         "content/injector.js",
+        "content/chat-observer.js",
         "content/reminder-prompt.js"
       ],
       "css": ["content/styles.css"],

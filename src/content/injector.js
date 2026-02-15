@@ -105,8 +105,8 @@
       btn.setAttribute('data-testid', REMINDER_BTN_TESTID);
       btn.className = 'wa-reminder-btn';
       btn.type = 'button';
-      btn.title = 'Set Reminder';
-      btn.setAttribute('aria-label', 'Set Reminder');
+      btn.title = (chrome.i18n && chrome.i18n.getMessage('setReminder')) || 'Set Reminder';
+      btn.setAttribute('aria-label', (chrome.i18n && chrome.i18n.getMessage('setReminder')) || 'Set Reminder');
 
       // Bell icon SVG
       btn.innerHTML = `
@@ -169,7 +169,7 @@
 
     const errorEl = document.createElement('div');
     errorEl.className = 'wa-reminder-error';
-    errorEl.textContent = 'Could not detect chat. Use the popup dashboard instead.';
+    errorEl.textContent = (chrome.i18n && chrome.i18n.getMessage('injectionFailed')) || 'Could not detect chat. Use the popup dashboard instead.';
 
     header.appendChild(errorEl);
 
@@ -189,7 +189,8 @@
   function onChatHeaderDetected(header) {
     const success = injectReminderButton(header);
     if (!success) {
-      console.info('WAReminder: Button injection failed, popup dashboard available as fallback.');
+      console.warn('WAReminder: Button injection failed, popup dashboard available as fallback.');
+      showInjectionError(header);
     }
   }
 

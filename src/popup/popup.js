@@ -53,9 +53,26 @@
   document.addEventListener('DOMContentLoaded', init);
 
   async function init() {
+    applyI18n();
     setupEventListeners();
+    setupStorageListener();
     await checkNotificationPermission();
     await loadReminders();
+  }
+
+  /**
+   * Applies i18n strings from chrome.i18n to all elements with data-i18n attributes.
+   */
+  function applyI18n() {
+    if (!chrome.i18n || !chrome.i18n.getMessage) return;
+    const elements = document.querySelectorAll('[data-i18n]');
+    for (const el of elements) {
+      const key = el.getAttribute('data-i18n');
+      const msg = chrome.i18n.getMessage(key);
+      if (msg) {
+        el.textContent = msg;
+      }
+    }
   }
 
   function setupEventListeners() {
@@ -69,6 +86,20 @@
         // Open Chrome extension settings - notifications can be enabled there
         if (chrome.runtime && chrome.runtime.openOptionsPage) {
           chrome.runtime.openOptionsPage();
+        }
+      });
+    }
+  }
+
+  /**
+   * Listens for storage changes to reactively update the popup.
+   */
+  function setupStorageListener() {
+    if (chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'local' && changes.reminders) {
+          allReminders = changes.reminders.newValue || [];
+          renderReminders();
         }
       });
     }

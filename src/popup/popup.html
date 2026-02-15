@@ -34,27 +34,27 @@
     <!-- Empty State -->
     <div id="empty-state" class="empty-state" hidden>
       <div class="empty-icon">🔔</div>
-      <p class="empty-title">No follow-ups scheduled</p>
-      <p class="empty-subtitle">Open a WhatsApp Web chat to set one!</p>
+      <p class="empty-title" data-i18n="noReminders">No follow-ups scheduled</p>
+      <p class="empty-subtitle" data-i18n="noRemindersDetail">Open a WhatsApp Web chat to set one!</p>
     </div>
 
     <!-- Reminder List -->
     <div id="reminder-list" class="reminder-list" hidden>
       <!-- Overdue Section -->
       <section id="overdue-section" class="reminder-section" hidden>
-        <h2 class="section-title section-title--overdue">Overdue</h2>
+        <h2 class="section-title section-title--overdue" data-i18n="overdue">Overdue</h2>
         <div id="overdue-items" class="reminder-items"></div>
       </section>
 
       <!-- Upcoming Section -->
       <section id="upcoming-section" class="reminder-section" hidden>
-        <h2 class="section-title section-title--upcoming">Upcoming</h2>
+        <h2 class="section-title section-title--upcoming" data-i18n="upcoming">Upcoming</h2>
         <div id="upcoming-items" class="reminder-items"></div>
       </section>
 
       <!-- Completed Section -->
       <section id="completed-section" class="reminder-section" hidden>
-        <h2 class="section-title section-title--completed">Completed</h2>
+        <h2 class="section-title section-title--completed" data-i18n="completed">Completed</h2>
         <div id="completed-items" class="reminder-items"></div>
       </section>
     </div>
@@ -69,11 +69,11 @@
     <!-- Delete Confirmation Dialog -->
     <div id="delete-dialog" class="delete-dialog" hidden>
       <div class="delete-dialog-content">
-        <p>Delete this reminder?</p>
+        <p data-i18n="deleteConfirmTitle">Delete this reminder?</p>
         <p class="delete-dialog-detail" id="delete-dialog-detail"></p>
         <div class="delete-dialog-actions">
-          <button id="delete-cancel" class="btn btn--cancel">Cancel</button>
-          <button id="delete-confirm" class="btn btn--danger">Delete</button>
+          <button id="delete-cancel" class="btn btn--cancel" data-i18n="cancel">Cancel</button>
+          <button id="delete-confirm" class="btn btn--danger" data-i18n="deleteReminder">Delete</button>
         </div>
       </div>
     </div>

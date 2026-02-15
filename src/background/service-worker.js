@@ -94,10 +94,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (handler) {
     handler(message, sender)
       .then((result) => sendResponse(result))
-      .catch((err) => sendResponse({
-        success: false,
-        error: err.message || 'An unknown error occurred',
-      }));
+      .catch((err) => {
+        // Wrap storage/Chrome API errors with user-friendly message
+        const isStorageError = !err.name || err.name === 'Error' || err.name === 'StorageError';
+        const friendlyMessage = isStorageError && !err.message.includes('Reminder')
+          && !err.message.includes('limit') && !err.message.includes('must be')
+          && !err.message.includes('Invalid') && !err.message.includes('Missing')
+          ? 'Failed to save reminder. Please try again.'
+          : err.message || 'An unknown error occurred';
+        sendResponse({
+          success: false,
+          error: friendlyMessage,
+        });
+      });
     return true; // Keep channel open for async sendResponse
   }
 
@@ -153,5 +162,6 @@ StorageService.onRemindersChanged((reminders) => {
 (async () => {
   await reconcileAlarms();
   await checkOverdueReminders();
+  await ReminderService.cleanupExpiredCompleted();
   await updateBadge();
 })();

@@ -7,6 +7,7 @@
  */
 
 import { ALARM_PREFIX } from '../lib/constants.js';
+import { formatDateTime } from '../lib/utils.js';
 import * as ChatService from '../services/chat-service.js';
 import * as StorageService from '../services/storage-service.js';
 
@@ -19,8 +20,8 @@ export async function createReminderNotification(reminder) {
   await chrome.notifications.create(`${ALARM_PREFIX}${reminder.id}`, {
     type: 'basic',
     iconUrl: 'icons/icon-128.png',
-    title: `Follow up: ${reminder.chatName}`,
-    message: `Time to follow up with ${reminder.chatName}`,
+    title: chrome.i18n.getMessage('notificationTitle', [reminder.chatName]) || `Follow up: ${reminder.chatName}`,
+    message: chrome.i18n.getMessage('notificationBody', [reminder.chatName, formatDateTime(reminder.scheduledTime)]) || `Time to follow up with ${reminder.chatName} — ${formatDateTime(reminder.scheduledTime)}`,
     priority: 2,
     requireInteraction: true,
   });
@@ -45,8 +46,15 @@ async function handleNotificationClick(notificationId) {
     try {
       await ChatService.navigateToChat(reminder.chatId);
     } catch (e) {
-      // Chat navigation failed — notification stays, user can use popup
+      // Chat navigation failed — show fallback notification guiding user to popup
       console.warn('Failed to navigate to chat:', e.message);
+      await chrome.notifications.create(`fallback-${reminderId}`, {
+        type: 'basic',
+        iconUrl: 'icons/icon-128.png',
+        title: 'Could not open chat',
+        message: `Unable to open chat with ${reminder.chatName}. Use the popup dashboard to manage this reminder.`,
+        priority: 1,
+      });
     }
   }
 
