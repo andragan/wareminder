@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400">
+  <title>WAReminder Dashboard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="popup-header-left">
+        <img src="../icons/icon-48.png" alt="WAReminder" class="popup-logo" width="24" height="24">
+        <h1 class="popup-title">WAReminder</h1>
+      </div>
+      <div class="popup-header-right">
+        <span id="reminder-count" class="reminder-count"></span>
+      </div>
+    </header>
+
+    <!-- Notification Permission Warning -->
+    <div id="notification-warning" class="notification-warning" hidden>
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-text">Notifications are disabled. <a href="#" id="enable-notifications-link">Enable them</a> to receive reminders.</span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading reminders…</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state" hidden>
+      <div class="empty-icon">🔔</div>
+      <p class="empty-title">No follow-ups scheduled</p>
+      <p class="empty-subtitle">Open a WhatsApp Web chat to set one!</p>
+    </div>
+
+    <!-- Reminder List -->
+    <div id="reminder-list" class="reminder-list" hidden>
+      <!-- Overdue Section -->
+      <section id="overdue-section" class="reminder-section" hidden>
+        <h2 class="section-title section-title--overdue">Overdue</h2>
+        <div id="overdue-items" class="reminder-items"></div>
+      </section>
+
+      <!-- Upcoming Section -->
+      <section id="upcoming-section" class="reminder-section" hidden>
+        <h2 class="section-title section-title--upcoming">Upcoming</h2>
+        <div id="upcoming-items" class="reminder-items"></div>
+      </section>
+
+      <!-- Completed Section -->
+      <section id="completed-section" class="reminder-section" hidden>
+        <h2 class="section-title section-title--completed">Completed</h2>
+        <div id="completed-items" class="reminder-items"></div>
+      </section>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination" hidden>
+      <button id="prev-page" class="pagination-btn" disabled>← Prev</button>
+      <span id="page-info" class="page-info"></span>
+      <button id="next-page" class="pagination-btn">Next →</button>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="delete-dialog" class="delete-dialog" hidden>
+      <div class="delete-dialog-content">
+        <p>Delete this reminder?</p>
+        <p class="delete-dialog-detail" id="delete-dialog-detail"></p>
+        <div class="delete-dialog-actions">
+          <button id="delete-cancel" class="btn btn--cancel">Cancel</button>
+          <button id="delete-confirm" class="btn btn--danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+/* WAReminder Popup Dashboard Styles */
+
+/* ========== Reset & Base ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #111b21;
+  background: #ffffff;
+  width: 400px;
+  min-height: 200px;
+  max-height: 600px;
+  overflow: hidden;
+}
+
+/* ========== Container ========== */
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 600px;
+}
+
+/* ========== Header ========== */
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #008069;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.popup-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup-logo {
+  border-radius: 4px;
+}
+
+.popup-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.reminder-count {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* ========== Notification Warning ========== */
+.notification-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff3cd;
+  border-bottom: 1px solid #ffc107;
+  font-size: 12px;
+  color: #856404;
+  flex-shrink: 0;
+}
+
+.notification-warning a {
+  color: #0d6efd;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ========== Loading State ========== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 12px;
+  color: #667781;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e9edef;
+  border-top-color: #008069;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== Empty State ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111b21;
+  margin-bottom: 4px;
+}
+
+.empty-subtitle {
+  font-size: 13px;
+  color: #667781;
+}
+
+/* ========== Reminder List ========== */
+.reminder-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+/* ========== Section Titles ========== */
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 16px 4px;
+}
+
+.section-title--overdue {
+  color: #ea0038;
+}
+
+.section-title--upcoming {
+  color: #008069;
+}
+
+.section-title--completed {
+  color: #667781;
+}
+
+/* ========== Reminder Items ========== */
+.reminder-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e9edef;
+  gap: 10px;
+  transition: background 0.15s;
+}
+
+.reminder-item:hover {
+  background: #f0f2f5;
+}
+
+.reminder-item--overdue {
+  background: #fff5f5;
+}
+
+.reminder-item--overdue:hover {
+  background: #ffe8e8;
+}
+
+.reminder-item--completed {
+  opacity: 0.6;
+}
+
+.reminder-info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.reminder-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111b21;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reminder-time {
+  font-size: 12px;
+  color: #667781;
+  margin-top: 2px;
+}
+
+.reminder-time--overdue {
+  color: #ea0038;
+  font-weight: 500;
+}
+
+.reminder-status-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.reminder-status-badge--overdue {
+  background: #fde8ec;
+  color: #ea0038;
+}
+
+.reminder-status-badge--completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* ========== Action Buttons ========== */
+.reminder-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.action-btn:hover {
+  background: #d9dfe4;
+  transform: scale(1.05);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.action-btn--open:hover {
+  background: #d1f0e8;
+}
+
+.action-btn--complete:hover {
+  background: #d1f0e8;
+}
+
+.action-btn--delete:hover {
+  background: #fde8ec;
+}
+
+.action-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========== Pagination ========== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid #e9edef;
+  flex-shrink: 0;
+}
+
+.pagination-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid #d1d7db;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #008069;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pagination-btn:hover:not([disabled]) {
+  background: #f0f2f5;
+}
+
+.pagination-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 12px;
+  color: #667781;
+}
+
+/* ========== Delete Confirmation Dialog ========== */
+.delete-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.delete-dialog-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 280px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.delete-dialog-content p:first-child {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.delete-dialog-detail {
+  font-size: 13px;
+  color: #667781;
+  margin-bottom: 16px;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn--cancel {
+  background: #e9edef;
+  color: #111b21;
+}
+
+.btn--danger {
+  background: #ea0038;
+  color: #ffffff;
+}
+
+/* ========== Scrollbar ========== */
+.reminder-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reminder-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reminder-list::-webkit-scrollbar-thumb {
+  background: #c5c6c8;
+  border-radius: 3px;
+}
+
+.reminder-list::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}

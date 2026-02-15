@@ -1,0 +1,349 @@
+/* ============================================================
+   WAReminder — Content Script Styles
+   Matches WhatsApp Web visual language for native feel.
+   ============================================================ */
+
+/* --- Set Reminder Button --- */
+.wa-reminder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--icon-lighter, #8696a0);
+  cursor: pointer;
+  padding: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wa-reminder-btn:hover {
+  background-color: var(--background-default-hover, rgba(134, 150, 160, 0.15));
+  color: var(--icon, #667781);
+}
+
+.wa-reminder-btn:active {
+  background-color: var(--background-default-active, rgba(134, 150, 160, 0.25));
+}
+
+.wa-reminder-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wa-reminder-btn .wa-reminder-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* --- Reminder Prompt Overlay --- */
+.wa-reminder-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 20, 26, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: wa-reminder-fade-in 0.15s ease;
+}
+
+@keyframes wa-reminder-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- Prompt Card --- */
+.wa-reminder-prompt {
+  background: var(--panel-background-deeper, #202c33);
+  border-radius: 12px;
+  padding: 24px;
+  width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: var(--primary, #e9edef);
+  font-family: Segoe UI, Helvetica Neue, Helvetica, Lucida Grande, Arial, Ubuntu, Cantarell, Fira Sans, sans-serif;
+  font-size: 14px;
+  animation: wa-reminder-slide-up 0.2s ease;
+}
+
+@keyframes wa-reminder-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wa-reminder-prompt-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--primary, #e9edef);
+}
+
+.wa-reminder-prompt-subtitle {
+  font-size: 13px;
+  color: var(--secondary, #8696a0);
+  margin: 0 0 16px 0;
+}
+
+/* --- Preset Time Options --- */
+.wa-reminder-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.wa-reminder-preset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--background-default, #111b21);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--primary, #e9edef);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.wa-reminder-preset:hover {
+  background: var(--background-default-hover, #182229);
+  border-color: var(--border-default, #233138);
+}
+
+.wa-reminder-preset.selected {
+  background: rgba(0, 168, 132, 0.15);
+  border-color: #00a884;
+}
+
+.wa-reminder-preset-label {
+  font-weight: 500;
+}
+
+.wa-reminder-preset-time {
+  font-size: 12px;
+  color: var(--secondary, #8696a0);
+}
+
+/* --- Custom Date/Time Picker --- */
+.wa-reminder-custom {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--background-default, #111b21);
+  border-radius: 8px;
+  display: none;
+}
+
+.wa-reminder-custom.visible {
+  display: block;
+  animation: wa-reminder-fade-in 0.15s ease;
+}
+
+.wa-reminder-custom label {
+  display: block;
+  font-size: 12px;
+  color: var(--secondary, #8696a0);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.wa-reminder-custom label:first-child {
+  margin-top: 0;
+}
+
+.wa-reminder-custom input[type="date"],
+.wa-reminder-custom input[type="time"] {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--panel-background-deeper, #202c33);
+  border: 1px solid var(--border-default, #233138);
+  border-radius: 6px;
+  color: var(--primary, #e9edef);
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.wa-reminder-custom input:focus {
+  outline: none;
+  border-color: #00a884;
+}
+
+/* --- Action Buttons --- */
+.wa-reminder-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.wa-reminder-btn-cancel {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-default, #233138);
+  border-radius: 20px;
+  color: var(--secondary, #8696a0);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.wa-reminder-btn-cancel:hover {
+  background: var(--background-default-hover, #182229);
+  color: var(--primary, #e9edef);
+}
+
+.wa-reminder-btn-confirm {
+  padding: 8px 20px;
+  background: #00a884;
+  border: none;
+  border-radius: 20px;
+  color: #111b21;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.wa-reminder-btn-confirm:hover {
+  background: #06cf9c;
+}
+
+.wa-reminder-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Loading State --- */
+.wa-reminder-btn-confirm.loading {
+  position: relative;
+  color: transparent;
+}
+
+.wa-reminder-btn-confirm.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #111b21;
+  border-top-color: transparent;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  animation: wa-reminder-spin 0.6s linear infinite;
+}
+
+@keyframes wa-reminder-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Success Confirmation --- */
+.wa-reminder-success {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.wa-reminder-success-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.wa-reminder-success-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #00a884;
+  margin-bottom: 4px;
+}
+
+.wa-reminder-success-detail {
+  font-size: 13px;
+  color: var(--secondary, #8696a0);
+}
+
+/* --- Error State --- */
+.wa-reminder-error {
+  background: rgba(233, 60, 45, 0.15);
+  color: #e93c2d;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 8px;
+  animation: wa-reminder-fade-in 0.15s ease;
+}
+
+.wa-reminder-inline-error {
+  color: #e93c2d;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 4px 0;
+}
+
+/* --- Dark theme adjustments (WhatsApp Web is dark by default) --- */
+@media (prefers-color-scheme: light) {
+  .wa-reminder-prompt {
+    background: #ffffff;
+    color: #111b21;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .wa-reminder-prompt-title {
+    color: #111b21;
+  }
+
+  .wa-reminder-prompt-subtitle {
+    color: #667781;
+  }
+
+  .wa-reminder-preset {
+    background: #f0f2f5;
+    color: #111b21;
+  }
+
+  .wa-reminder-preset:hover {
+    background: #e9edef;
+  }
+
+  .wa-reminder-preset-time {
+    color: #667781;
+  }
+
+  .wa-reminder-custom {
+    background: #f0f2f5;
+  }
+
+  .wa-reminder-custom input[type="date"],
+  .wa-reminder-custom input[type="time"] {
+    background: #ffffff;
+    border-color: #d1d7db;
+    color: #111b21;
+  }
+
+  .wa-reminder-btn-cancel {
+    border-color: #d1d7db;
+    color: #667781;
+  }
+
+  .wa-reminder-btn-cancel:hover {
+    background: #f0f2f5;
+    color: #111b21;
+  }
+}

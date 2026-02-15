@@ -1,0 +1,5 @@
+// @ts-check
+
+const chrome = require('jest-chrome');
+
+Object.assign(global, chrome);

@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "WAReminder - WhatsApp Follow-Up Reminders",
+  "version": "1.0.0",
+  "description": "Set follow-up reminders on WhatsApp Web chats. Never forget to follow up with a customer again.",
+  "permissions": [
+    "alarms",
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "*://web.whatsapp.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://web.whatsapp.com/*"],
+      "js": [
+        "content/chat-observer.js",
+        "content/injector.js",
+        "content/reminder-prompt.js"
+      ],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "WAReminder - View Follow-Up Reminders"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "default_locale": "en"
+}

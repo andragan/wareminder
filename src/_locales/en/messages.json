@@ -1,0 +1,168 @@
+{
+  "extensionName": {
+    "message": "WAReminder - WhatsApp Follow-Up Reminders",
+    "description": "Extension name shown in Chrome"
+  },
+  "extensionDescription": {
+    "message": "Set follow-up reminders on WhatsApp Web chats. Never forget to follow up with a customer again.",
+    "description": "Extension description shown in Chrome Web Store"
+  },
+  "setReminder": {
+    "message": "Set Reminder",
+    "description": "Button label for creating a new reminder"
+  },
+  "reminderCreated": {
+    "message": "Reminder set!",
+    "description": "Confirmation message after creating a reminder"
+  },
+  "reminderCreatedDetail": {
+    "message": "You'll be reminded to follow up with $CONTACT$ at $TIME$.",
+    "description": "Detail message after creating a reminder",
+    "placeholders": {
+      "contact": { "content": "$1", "example": "John Doe" },
+      "time": { "content": "$2", "example": "3:00 PM" }
+    }
+  },
+  "presetOneHour": {
+    "message": "In 1 hour",
+    "description": "Preset time option: one hour from now"
+  },
+  "presetTonight": {
+    "message": "Tonight at 8 PM",
+    "description": "Preset time option: tonight"
+  },
+  "presetTomorrow": {
+    "message": "Tomorrow at 9 AM",
+    "description": "Preset time option: tomorrow morning"
+  },
+  "presetCustom": {
+    "message": "Custom date & time",
+    "description": "Preset time option: pick custom date and time"
+  },
+  "confirmReminder": {
+    "message": "Set reminder for $TIME$",
+    "description": "Confirm button with resolved time",
+    "placeholders": {
+      "time": { "content": "$1", "example": "Feb 16, 2026 at 3:00 PM" }
+    }
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "Cancel action label"
+  },
+  "notificationTitle": {
+    "message": "Follow up: $CONTACT$",
+    "description": "Notification title",
+    "placeholders": {
+      "contact": { "content": "$1", "example": "John Doe" }
+    }
+  },
+  "notificationBody": {
+    "message": "Time to follow up with $CONTACT$",
+    "description": "Notification body text",
+    "placeholders": {
+      "contact": { "content": "$1", "example": "John Doe" }
+    }
+  },
+  "popupTitle": {
+    "message": "Follow-Up Reminders",
+    "description": "Popup dashboard title"
+  },
+  "noReminders": {
+    "message": "No reminders yet",
+    "description": "Empty state heading"
+  },
+  "noRemindersDetail": {
+    "message": "Open a chat on WhatsApp Web and click \"Set Reminder\" to get started.",
+    "description": "Empty state description"
+  },
+  "overdue": {
+    "message": "Overdue",
+    "description": "Label for overdue reminders section"
+  },
+  "upcoming": {
+    "message": "Upcoming",
+    "description": "Label for upcoming reminders section"
+  },
+  "completed": {
+    "message": "Completed",
+    "description": "Label for completed reminders"
+  },
+  "openChat": {
+    "message": "Open Chat",
+    "description": "Action to open WhatsApp chat"
+  },
+  "markComplete": {
+    "message": "Mark Complete",
+    "description": "Action to mark reminder as completed"
+  },
+  "deleteReminder": {
+    "message": "Delete",
+    "description": "Action to delete a reminder"
+  },
+  "deleteConfirmTitle": {
+    "message": "Delete reminder?",
+    "description": "Delete confirmation dialog title"
+  },
+  "deleteConfirmBody": {
+    "message": "This will permanently remove the reminder for $CONTACT$.",
+    "description": "Delete confirmation dialog body",
+    "placeholders": {
+      "contact": { "content": "$1", "example": "John Doe" }
+    }
+  },
+  "planLimitReached": {
+    "message": "You've reached the limit of $LIMIT$ active reminders. Upgrade to create more.",
+    "description": "Error when plan limit is reached",
+    "placeholders": {
+      "limit": { "content": "$1", "example": "5" }
+    }
+  },
+  "invalidTime": {
+    "message": "Reminder time must be in the future",
+    "description": "Error for past time selection"
+  },
+  "invalidChatId": {
+    "message": "Invalid chat identifier",
+    "description": "Error for invalid chat ID"
+  },
+  "missingField": {
+    "message": "Missing required field: $FIELD$",
+    "description": "Error for missing required field",
+    "placeholders": {
+      "field": { "content": "$1", "example": "chatName" }
+    }
+  },
+  "storageError": {
+    "message": "Failed to save reminder. Please try again.",
+    "description": "Error when storage write fails"
+  },
+  "notificationsDenied": {
+    "message": "Notifications are disabled. Reminders won't alert you.",
+    "description": "Warning shown when notification permission is denied"
+  },
+  "notificationsDeniedAction": {
+    "message": "Enable in Chrome settings",
+    "description": "Link text to re-enable notifications"
+  },
+  "injectionFailed": {
+    "message": "Could not inject reminder button. Use the popup dashboard instead.",
+    "description": "Fallback message when DOM injection fails"
+  },
+  "saving": {
+    "message": "Saving...",
+    "description": "Loading state while saving reminder"
+  },
+  "reminderNotFound": {
+    "message": "Reminder not found",
+    "description": "Error when reminder ID doesn't exist"
+  },
+  "alreadyCompleted": {
+    "message": "Reminder is already completed",
+    "description": "Error when trying to complete an already-completed reminder"
+  },
+  "storageQuotaWarning": {
+    "message": "Storage is almost full. Consider deleting old reminders.",
+    "description": "Warning when storage usage exceeds 90%"
+  }
+}

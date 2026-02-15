@@ -17,12 +17,12 @@
 
 **Purpose**: Project initialization, manifest, dev tooling, and shared constants/utilities
 
-- [ ] T001 Initialize npm project with package.json at repository root
-- [ ] T002 Create MV3 manifest.json per contracts/manifest.md in src/manifest.json
-- [ ] T003 [P] Configure ESLint with no-unused-vars, no-implicit-globals, consistent-return rules in .eslintrc.json
-- [ ] T004 [P] Configure Jest with jest-chrome and jsdom environment in jest.config.js
-- [ ] T005 [P] Create extension icon placeholders (16, 48, 128px) in src/icons/
-- [ ] T006 [P] Create i18n messages file with all user-facing strings in src/_locales/en/messages.json
+- [x] T001 Initialize npm project with package.json at repository root
+- [x] T002 Create MV3 manifest.json per contracts/manifest.md in src/manifest.json
+- [x] T003 [P] Configure ESLint with no-unused-vars, no-implicit-globals, consistent-return rules in .eslintrc.json
+- [x] T004 [P] Configure Jest with jest-chrome and jsdom environment in jest.config.js
+- [x] T005 [P] Create extension icon placeholders (16, 48, 128px) in src/icons/
+- [x] T006 [P] Create i18n messages file with all user-facing strings in src/_locales/en/messages.json
 
 ---
 
@@ -32,20 +32,20 @@
 
 **⚠️ CRITICAL**: Every user story depends on storage-service, reminder-service, validators, utils, and constants.
 
-- [ ] T007 Define named constants (plan limits, alarm prefix, storage keys, default times, CSS selectors) in src/lib/constants.js
-- [ ] T008 [P] Implement input validators (future time, JID format, required fields, status enum) in src/lib/validators.js
-- [ ] T009 [P] Implement shared utilities (UUID generation, date formatting, navigation URL builder) in src/lib/utils.js
-- [ ] T010 Implement storage service (getReminders, saveReminders, getUserPlan, saveUserPlan, onRemindersChanged) per contracts/services.md in src/services/storage-service.js
-- [ ] T011 [P] Implement plan service (canCreateReminder, getPlanStatus) per contracts/services.md in src/services/plan-service.js
-- [ ] T012 [P] Implement chat service (navigateToChat with tab find-or-create logic) per contracts/services.md in src/services/chat-service.js
-- [ ] T013 Implement reminder service (createReminder, completeReminder, deleteReminder, getAllReminders, getOverdueReminders, cleanupExpiredCompleted) per contracts/services.md in src/services/reminder-service.js
-- [ ] T014 Implement service worker entry point with onInstalled handler (initialize userPlan defaults, reconcile alarms, run auto-cleanup) in src/background/service-worker.js
-- [ ] T015 [P] Write unit tests for validators in tests/unit/lib/validators.test.js
-- [ ] T016 [P] Write unit tests for utils in tests/unit/lib/utils.test.js
-- [ ] T017 [P] Write unit tests for storage-service in tests/unit/services/storage-service.test.js
-- [ ] T018 [P] Write unit tests for plan-service in tests/unit/services/plan-service.test.js
-- [ ] T019 [P] Write unit tests for chat-service in tests/unit/services/chat-service.test.js
-- [ ] T020 Write unit tests for reminder-service in tests/unit/services/reminder-service.test.js
+- [x] T007 Define named constants (plan limits, alarm prefix, storage keys, default times, CSS selectors) in src/lib/constants.js
+- [x] T008 [P] Implement input validators (future time, JID format, required fields, status enum) in src/lib/validators.js
+- [x] T009 [P] Implement shared utilities (UUID generation, date formatting, navigation URL builder) in src/lib/utils.js
+- [x] T010 Implement storage service (getReminders, saveReminders, getUserPlan, saveUserPlan, onRemindersChanged) per contracts/services.md in src/services/storage-service.js
+- [x] T011 [P] Implement plan service (canCreateReminder, getPlanStatus) per contracts/services.md in src/services/plan-service.js
+- [x] T012 [P] Implement chat service (navigateToChat with tab find-or-create logic) per contracts/services.md in src/services/chat-service.js
+- [x] T013 Implement reminder service (createReminder, completeReminder, deleteReminder, getAllReminders, getOverdueReminders, cleanupExpiredCompleted) per contracts/services.md in src/services/reminder-service.js
+- [x] T014 Implement service worker entry point with onInstalled handler (initialize userPlan defaults, reconcile alarms, run auto-cleanup) in src/background/service-worker.js
+- [x] T015 [P] Write unit tests for validators in tests/unit/lib/validators.test.js
+- [x] T016 [P] Write unit tests for utils in tests/unit/lib/utils.test.js
+- [x] T017 [P] Write unit tests for storage-service in tests/unit/services/storage-service.test.js
+- [x] T018 [P] Write unit tests for plan-service in tests/unit/services/plan-service.test.js
+- [x] T019 [P] Write unit tests for chat-service in tests/unit/services/chat-service.test.js
+- [x] T020 Write unit tests for reminder-service in tests/unit/services/reminder-service.test.js
 
 **Checkpoint**: All shared services tested and working. Foundation ready — user story implementation can begin.
 
@@ -61,18 +61,18 @@
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Implement MutationObserver for WhatsApp Web DOM changes (observe #app, debounced, detect #main header) in src/content/chat-observer.js
-- [ ] T022 [P] [US1] Implement chat context extraction (chatId from sidebar [data-id], chatName from header) in src/content/injector.js
-- [ ] T023 [US1] Implement "Set Reminder" button injection into WhatsApp Web chat header action buttons row in src/content/injector.js
-- [ ] T024 [US1] Implement time-selection prompt UI (preset options: 1 hour, tonight, tomorrow, custom date/time picker; each preset MUST resolve and display the absolute datetime before user confirms) in src/content/reminder-prompt.js
-- [ ] T025 [P] [US1] Implement content script styles matching WhatsApp Web visual language (button, prompt, confirmation, error states, hover states, loading spinner during save, disabled state while saving) in src/content/styles.css
-- [ ] T026 [US1] Wire content script message passing: send CREATE_REMINDER to service worker, display success confirmation or error inline per contracts/messages.md in src/content/reminder-prompt.js
-- [ ] T027 [US1] Add message handler for CREATE_REMINDER in service worker (validate, check plan limit, create reminder, schedule alarm) in src/background/service-worker.js
-- [ ] T028 [US1] Handle injection failure detection and fallback notification guiding user to popup dashboard per FR-013 in src/content/injector.js
-- [ ] T029 [US1] Handle prompt dismissal on navigation away from WhatsApp Web (graceful cleanup, no incomplete saves) in src/content/reminder-prompt.js
-- [ ] T030 [US1] Implement alarm scheduling (chrome.alarms.create with when parameter, name: reminder-<id>) in src/background/alarm-handler.js
-- [ ] T031 [P] [US1] Write integration test for content script ↔ storage interaction (create reminder end-to-end) in tests/integration/content-storage.test.js
-- [ ] T032 [P] [US1] Write e2e acceptance test for reminder creation lifecycle (create → verify storage → verify alarm) per constitution II in tests/e2e/create-reminder.test.js
+- [x] T021 [P] [US1] Implement MutationObserver for WhatsApp Web DOM changes (observe #app, debounced, detect #main header) in src/content/chat-observer.js
+- [x] T022 [P] [US1] Implement chat context extraction (chatId from sidebar [data-id], chatName from header) in src/content/injector.js
+- [x] T023 [US1] Implement "Set Reminder" button injection into WhatsApp Web chat header action buttons row in src/content/injector.js
+- [x] T024 [US1] Implement time-selection prompt UI (preset options: 1 hour, tonight, tomorrow, custom date/time picker; each preset MUST resolve and display the absolute datetime before user confirms) in src/content/reminder-prompt.js
+- [x] T025 [P] [US1] Implement content script styles matching WhatsApp Web visual language (button, prompt, confirmation, error states, hover states, loading spinner during save, disabled state while saving) in src/content/styles.css
+- [x] T026 [US1] Wire content script message passing: send CREATE_REMINDER to service worker, display success confirmation or error inline per contracts/messages.md in src/content/reminder-prompt.js
+- [x] T027 [US1] Add message handler for CREATE_REMINDER in service worker (validate, check plan limit, create reminder, schedule alarm) in src/background/service-worker.js
+- [x] T028 [US1] Handle injection failure detection and fallback notification guiding user to popup dashboard per FR-013 in src/content/injector.js
+- [x] T029 [US1] Handle prompt dismissal on navigation away from WhatsApp Web (graceful cleanup, no incomplete saves) in src/content/reminder-prompt.js
+- [x] T030 [US1] Implement alarm scheduling (chrome.alarms.create with when parameter, name: reminder-<id>) in src/background/alarm-handler.js
+- [x] T031 [P] [US1] Write integration test for content script ↔ storage interaction (create reminder end-to-end) in tests/integration/content-storage.test.js
+- [x] T032 [P] [US1] Write e2e acceptance test for reminder creation lifecycle (create → verify storage → verify alarm) per constitution II in tests/e2e/create-reminder.test.js
 
 **Checkpoint**: User Story 1 fully functional. User can create reminders from WhatsApp Web chat header. Reminders persist in storage with alarms scheduled. Plan limits enforced.
 
@@ -88,14 +88,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Implement alarm handler (chrome.alarms.onAlarm listener, look up reminder by alarm name, trigger notification) in src/background/alarm-handler.js
-- [ ] T034 [US2] Implement notification creation (chrome.notifications.create with contact name, time, requireInteraction, icon) in src/background/notification-handler.js
-- [ ] T035 [US2] Implement notification click handler (chrome.notifications.onClicked, navigate to chat via chat-service, clear notification) in src/background/notification-handler.js
-- [ ] T036 [US2] Add overdue reminder check on service worker startup (scan storage for past-due pending reminders, fire notifications) in src/background/service-worker.js
-- [ ] T037 [US2] Add alarm reconciliation on service worker startup and onInstalled update (re-register missing alarms from storage) in src/background/service-worker.js
-- [ ] T038 [US2] Add message handler for CHECK_NOTIFICATION_PERMISSION in service worker per contracts/messages.md in src/background/service-worker.js
-- [ ] T039 [P] [US2] Write integration test for alarm firing ↔ notification creation flow in tests/integration/alarm-notification.test.js
-- [ ] T040 [P] [US2] Write e2e acceptance test for notification lifecycle (create → alarm fires → notification → click → chat opens) per constitution II in tests/e2e/receive-notification.test.js
+- [x] T033 [US2] Implement alarm handler (chrome.alarms.onAlarm listener, look up reminder by alarm name, trigger notification) in src/background/alarm-handler.js
+- [x] T034 [US2] Implement notification creation (chrome.notifications.create with contact name, time, requireInteraction, icon) in src/background/notification-handler.js
+- [x] T035 [US2] Implement notification click handler (chrome.notifications.onClicked, navigate to chat via chat-service, clear notification) in src/background/notification-handler.js
+- [x] T036 [US2] Add overdue reminder check on service worker startup (scan storage for past-due pending reminders, fire notifications) in src/background/service-worker.js
+- [x] T037 [US2] Add alarm reconciliation on service worker startup and onInstalled update (re-register missing alarms from storage) in src/background/service-worker.js
+- [x] T038 [US2] Add message handler for CHECK_NOTIFICATION_PERMISSION in service worker per contracts/messages.md in src/background/service-worker.js
+- [x] T039 [P] [US2] Write integration test for alarm firing ↔ notification creation flow in tests/integration/alarm-notification.test.js
+- [x] T040 [P] [US2] Write e2e acceptance test for notification lifecycle (create → alarm fires → notification → click → chat opens) per constitution II in tests/e2e/receive-notification.test.js
 
 **Checkpoint**: User Story 2 fully functional. Reminders trigger desktop notifications at scheduled time. Clicking notifications navigates to correct chat. Overdue reminders detected on startup.
 
@@ -111,19 +111,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T041 [P] [US3] Create popup HTML structure (reminder list container, empty state, overdue/upcoming sections, notification permission warning) in src/popup/popup.html
-- [ ] T042 [P] [US3] Create popup styles (400px width, WhatsApp-consistent palette, overdue visual distinction, loading/empty states, confirmation dialog) in src/popup/popup.css
-- [ ] T043 [US3] Implement popup JS: load and render reminder list sorted by scheduledTime (soonest first), distinguish overdue vs upcoming in src/popup/popup.js
-- [ ] T044 [US3] Implement "Open Chat" action in popup (send message to service worker or call chat-service) in src/popup/popup.js
-- [ ] T045 [US3] Implement "Mark Complete" action in popup (send COMPLETE_REMINDER message, update UI reactively) in src/popup/popup.js
-- [ ] T046 [US3] Implement "Delete" action with confirmation prompt in popup (send DELETE_REMINDER message, update UI) in src/popup/popup.js
-- [ ] T047 [US3] Implement empty state display when no reminders exist per FR-012 in src/popup/popup.js
-- [ ] T048 [US3] Add message handlers for COMPLETE_REMINDER, DELETE_REMINDER, GET_REMINDERS in service worker per contracts/messages.md in src/background/service-worker.js
-- [ ] T049 [US3] Implement auto-cleanup of completed reminders older than 30 days (cleanupExpiredCompleted on onInstalled and periodic) per FR-015 in src/background/service-worker.js
-- [ ] T050 [US3] Add notification permission check indicator in popup (warn if denied, link to re-enable) in src/popup/popup.js
-- [ ] T051 [US3] Implement virtual scrolling or pagination when reminder count exceeds 100 per constitution IV (support 10,000 reminders without lag per SC-003) in src/popup/popup.js
-- [ ] T052 [P] [US3] Write integration test for popup ↔ storage interaction (render list, complete, delete) in tests/integration/popup-storage.test.js
-- [ ] T053 [P] [US3] Write e2e acceptance test for dashboard management lifecycle (view → complete → delete → empty state) per constitution II in tests/e2e/manage-reminders.test.js
+- [x] T041 [P] [US3] Create popup HTML structure (reminder list container, empty state, overdue/upcoming sections, notification permission warning) in src/popup/popup.html
+- [x] T042 [P] [US3] Create popup styles (400px width, WhatsApp-consistent palette, overdue visual distinction, loading/empty states, confirmation dialog) in src/popup/popup.css
+- [x] T043 [US3] Implement popup JS: load and render reminder list sorted by scheduledTime (soonest first), distinguish overdue vs upcoming in src/popup/popup.js
+- [x] T044 [US3] Implement "Open Chat" action in popup (send message to service worker or call chat-service) in src/popup/popup.js
+- [x] T045 [US3] Implement "Mark Complete" action in popup (send COMPLETE_REMINDER message, update UI reactively) in src/popup/popup.js
+- [x] T046 [US3] Implement "Delete" action with confirmation prompt in popup (send DELETE_REMINDER message, update UI) in src/popup/popup.js
+- [x] T047 [US3] Implement empty state display when no reminders exist per FR-012 in src/popup/popup.js
+- [x] T048 [US3] Add message handlers for COMPLETE_REMINDER, DELETE_REMINDER, GET_REMINDERS in service worker per contracts/messages.md in src/background/service-worker.js
+- [x] T049 [US3] Implement auto-cleanup of completed reminders older than 30 days (cleanupExpiredCompleted on onInstalled and periodic) per FR-015 in src/background/service-worker.js
+- [x] T050 [US3] Add notification permission check indicator in popup (warn if denied, link to re-enable) in src/popup/popup.js
+- [x] T051 [US3] Implement virtual scrolling or pagination when reminder count exceeds 100 per constitution IV (support 10,000 reminders without lag per SC-003) in src/popup/popup.js
+- [x] T052 [P] [US3] Write integration test for popup ↔ storage interaction (render list, complete, delete) in tests/integration/popup-storage.test.js
+- [x] T053 [P] [US3] Write e2e acceptance test for dashboard management lifecycle (view → complete → delete → empty state) per constitution II in tests/e2e/manage-reminders.test.js
 
 **Checkpoint**: User Story 3 fully functional. Users can view, triage, complete, and delete reminders from the popup dashboard. Completed reminders auto-purged after 30 days. Large lists handled via pagination.
 
@@ -139,10 +139,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T054 [US4] Implement badge update via chrome.storage.onChanged listener (count pending reminders, setBadgeText, setBadgeBackgroundColor WhatsApp green) in src/background/service-worker.js
-- [ ] T055 [US4] Initialize badge count on service worker startup (read storage, set initial badge) in src/background/service-worker.js
-- [ ] T056 [US4] Handle badge clear when pending count reaches zero (setBadgeText empty string) in src/background/service-worker.js
-- [ ] T057 [P] [US4] Write e2e acceptance test for badge count lifecycle (create → increment → complete → decrement → zero → clear) per constitution II in tests/e2e/badge-count.test.js
+- [x] T054 [US4] Implement badge update via chrome.storage.onChanged listener (count pending reminders, setBadgeText, setBadgeBackgroundColor WhatsApp green) in src/background/service-worker.js
+- [x] T055 [US4] Initialize badge count on service worker startup (read storage, set initial badge) in src/background/service-worker.js
+- [x] T056 [US4] Handle badge clear when pending count reaches zero (setBadgeText empty string) in src/background/service-worker.js
+- [x] T057 [P] [US4] Write e2e acceptance test for badge count lifecycle (create → increment → complete → decrement → zero → clear) per constitution II in tests/e2e/badge-count.test.js
 
 **Checkpoint**: User Story 4 fully functional. Badge reflects pending reminder count, updates reactively on all storage changes, clears on zero.
 
@@ -152,15 +152,15 @@
 
 **Purpose**: Edge cases, hardening, documentation, and quality gates
 
-- [ ] T058 [P] Add storage quota warning at 90% capacity (check on reminder creation, warn user before refusing) per edge case in src/services/reminder-service.js
-- [ ] T059 [P] Handle unavailable chat on notification click (show inline message if chat can't be opened) per edge case in src/background/notification-handler.js
-- [ ] T060 [P] Add GET_PLAN_STATUS message handler in service worker per contracts/messages.md in src/background/service-worker.js
-- [ ] T061 Ensure all public functions have JSDoc comments across all src/ files per constitution
-- [ ] T062 Add // @ts-check annotations to all JavaScript files in src/ per constitution
-- [ ] T063 Run ESLint across all src/ files and fix any warnings to achieve zero-warning gate
-- [ ] T064 Run full test suite (npm test) and verify ≥80% statement coverage per constitution
-- [ ] T065 Verify bundle size ≤500KB uncompressed across all src/ assets per constitution
-- [ ] T066 Run quickstart.md smoke test checklist to validate end-to-end flows
+- [x] T058 [P] Add storage quota warning at 90% capacity (check on reminder creation, warn user before refusing) per edge case in src/services/reminder-service.js
+- [x] T059 [P] Handle unavailable chat on notification click (show inline message if chat can't be opened) per edge case in src/background/notification-handler.js
+- [x] T060 [P] Add GET_PLAN_STATUS message handler in service worker per contracts/messages.md in src/background/service-worker.js
+- [x] T061 Ensure all public functions have JSDoc comments across all src/ files per constitution
+- [x] T062 Add // @ts-check annotations to all JavaScript files in src/ per constitution
+- [x] T063 Run ESLint across all src/ files and fix any warnings to achieve zero-warning gate
+- [x] T064 Run full test suite (npm test) and verify ≥80% statement coverage per constitution
+- [x] T065 Verify bundle size ≤500KB uncompressed across all src/ assets per constitution
+- [x] T066 Run quickstart.md smoke test checklist to validate end-to-end flows
 
 ---
 
