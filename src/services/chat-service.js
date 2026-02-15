@@ -6,13 +6,8 @@
  * @module chat-service
  */
 
-const { WHATSAPP_URLS } = typeof require !== 'undefined'
-  ? require('../lib/constants')
-  : {};
-
-const { buildNavigationUrl } = typeof require !== 'undefined'
-  ? require('../lib/utils')
-  : {};
+import { WHATSAPP_URLS } from '../lib/constants.js';
+import { buildNavigationUrl } from '../lib/utils.js';
 
 /**
  * Navigates to a specific WhatsApp Web chat.
@@ -36,6 +31,10 @@ async function navigateToChat(chatId) {
     await chrome.tabs.create({ url: chatUrl });
   }
 }
+
+export {
+  navigateToChat,
+};
 
 const ChatService = {
   navigateToChat,

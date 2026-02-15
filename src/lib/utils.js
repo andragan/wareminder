@@ -5,9 +5,7 @@
  * @module utils
  */
 
-const { WHATSAPP_URLS } = typeof require !== 'undefined'
-  ? require('./constants')
-  : { WHATSAPP_URLS: { SEND_PATTERN: 'https://web.whatsapp.com/send?phone=' } };
+import { WHATSAPP_URLS } from './constants.js';
 
 /**
  * Generates a UUID v4 string.

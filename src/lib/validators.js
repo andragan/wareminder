@@ -6,9 +6,7 @@
  * @module validators
  */
 
-const { REMINDER_STATUS } = typeof require !== 'undefined'
-  ? require('./constants')
-  : { REMINDER_STATUS: { PENDING: 'pending', COMPLETED: 'completed' } };
+import { REMINDER_STATUS } from './constants.js';
 
 /** @type {RegExp} WhatsApp JID format: digits@c.us or digits@g.us */
 const JID_PATTERN = /^\d+@(c\.us|g\.us)$/;

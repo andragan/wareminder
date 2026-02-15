@@ -6,13 +6,8 @@
  * @module plan-service
  */
 
-const { REMINDER_STATUS, PLAN_LIMITS } = typeof require !== 'undefined'
-  ? require('../lib/constants')
-  : {};
-
-const StorageService = typeof require !== 'undefined'
-  ? require('./storage-service')
-  : null;
+import { REMINDER_STATUS, PLAN_LIMITS } from '../lib/constants.js';
+import * as StorageService from './storage-service.js';
 
 /**
  * Checks whether the user can create a new reminder based on their plan limit.
