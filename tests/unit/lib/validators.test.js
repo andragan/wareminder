@@ -176,13 +176,23 @@ describe('validators', () => {
 
     it('rejects payload with invalid chatId', () => {
       const payload = {
-        chatId: 'invalid',
+        chatId: 'Invalid-ChatId!',  // Contains uppercase, hyphens, and special chars
         chatName: 'John Doe',
         scheduledTime: Date.now() + 3600000,
       };
       const result = validateCreateReminderPayload(payload);
       expect(result.valid).toBe(false);
       expect(result.error).toContain('Invalid chat identifier');
+    });
+
+    it('accepts payload with slugified chatId', () => {
+      const payload = {
+        chatId: 'john_doe_chat',  // Slugified chat name
+        chatName: 'John Doe',
+        scheduledTime: Date.now() + 3600000,
+      };
+      const result = validateCreateReminderPayload(payload);
+      expect(result.valid).toBe(true);
     });
 
     it('rejects payload with missing fields', () => {

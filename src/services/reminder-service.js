@@ -7,25 +7,11 @@
  * @module reminder-service
  */
 
-const { REMINDER_STATUS, ALARM_PREFIX, CLEANUP, STORAGE_QUOTA } = typeof require !== 'undefined'
-  ? require('../lib/constants')
-  : {};
-
-const { validateCreateReminderPayload } = typeof require !== 'undefined'
-  ? require('../lib/validators')
-  : {};
-
-const { generateId } = typeof require !== 'undefined'
-  ? require('../lib/utils')
-  : {};
-
-const StorageService = typeof require !== 'undefined'
-  ? require('./storage-service')
-  : null;
-
-const PlanService = typeof require !== 'undefined'
-  ? require('./plan-service')
-  : null;
+import { REMINDER_STATUS, ALARM_PREFIX, STORAGE_QUOTA, CLEANUP } from '../lib/constants.js';
+import { validateCreateReminderPayload } from '../lib/validators.js';
+import { generateId } from '../lib/utils.js';
+import * as StorageService from './storage-service.js';
+import * as PlanService from './plan-service.js';
 
 /**
  * Creates a new reminder, validates input, checks plan limits, schedules alarm.
@@ -235,6 +221,16 @@ async function checkStorageQuota(deps) {
     usagePercent: Math.round(usagePercent * 100) / 100,
   };
 }
+
+export {
+    createReminder,
+    completeReminder,
+    deleteReminder,
+    getAllReminders,
+    getOverdueReminders,
+    cleanupExpiredCompleted,
+    checkStorageQuota,
+};
 
 const ReminderService = {
   createReminder,

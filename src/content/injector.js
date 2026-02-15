@@ -13,60 +13,50 @@
   const REMINDER_BTN_SELECTOR = `[data-testid="${REMINDER_BTN_TESTID}"]`;
 
   /**
-   * Extracts the current chat context from WhatsApp Web DOM.
-   * Gets chatId from sidebar selected item's data-id attribute,
-   * and chatName from the header text.
+   * Extracts the current chat context from WhatsApp Web DOM and URL.
+   * Uses header title for chatName and attempts to extract chatId from URL or DOM.
    * @returns {{ chatId: string, chatName: string } | null}
    */
   function extractChatContext() {
     try {
       // Extract chat name from header
       const header = document.querySelector('#main header');
-      if (!header) return null;
+      if (!header) {
+        console.warn('WAReminder: Header not found');
+        return null;
+      }
 
-      // The contact name is typically in a span with a title attribute within the header
-      const nameEl = header.querySelector('span[title]');
-      const chatName = nameEl ? nameEl.getAttribute('title') : null;
-      if (!chatName || !chatName.trim()) return null;
+      // Look for the contact/group name in the header
+      // It's in a span with title attribute and dir="auto"
+      const nameEl = header.querySelector('span[dir="auto"]');
+      const chatName = nameEl ? nameEl.textContent : null;
+      
+      if (!chatName || !chatName.trim()) {
+        console.warn('WAReminder: Chat name not found in header');
+        return null;
+      }
 
-      // Extract chat ID from sidebar selected chat's data-id attribute
       let chatId = null;
 
-      // Method 1: Look for selected/focused chat list item with data-id
-      const selectedChat = document.querySelector(
-        '[aria-selected="true"] [data-id]'
-      );
-      if (selectedChat) {
-        chatId = selectedChat.getAttribute('data-id');
+      // Try to extract chatId from the current URL
+      // WhatsApp Web URLs contain phone numbers or group IDs
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // For individual chats: ?phone=XXXXXXXXXX
+      const phoneParam = urlParams.get('phone');
+      if (phoneParam) {
+        // Format as WhatsApp ID: phone@c.us
+        chatId = `${phoneParam}@c.us`;
       }
-
-      // Method 2: Look for the active/focused row in the chat list
+      
+      // For group chats: typically no phone param, fall back to chat name
+      // As fallback identifier for groups (will be stored locally)
       if (!chatId) {
-        const focusedRow = document.querySelector(
-          '#pane-side [tabindex="-1"][data-id]'
-        );
-        if (focusedRow) {
-          chatId = focusedRow.getAttribute('data-id');
-        }
+        const chatNameId = chatName.toLowerCase().replace(/\s+/g, '_');
+        // Create a deterministic ID if we can't find the real one
+        // This allows local reminders to work even if we can't get the phone
+        chatId = chatNameId;
       }
-
-      // Method 3: Look for any element with matching data-id in sidebar
-      if (!chatId) {
-        const allDataIds = document.querySelectorAll('#pane-side [data-id]');
-        for (const el of allDataIds) {
-          const id = el.getAttribute('data-id');
-          if (id && (id.endsWith('@c.us') || id.endsWith('@g.us'))) {
-            // Try to match by checking if the title in this row matches our chat name
-            const rowTitle = el.querySelector('span[title]');
-            if (rowTitle && rowTitle.getAttribute('title') === chatName) {
-              chatId = id;
-              break;
-            }
-          }
-        }
-      }
-
-      if (!chatId) return null;
 
       return {
         chatId: chatId.trim(),

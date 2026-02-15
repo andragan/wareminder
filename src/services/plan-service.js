@@ -63,6 +63,11 @@ async function getPlanStatus(storage) {
   };
 }
 
+export {
+    canCreateReminder,
+    getPlanStatus,
+}
+
 const PlanService = {
   canCreateReminder,
   getPlanStatus,

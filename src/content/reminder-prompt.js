@@ -379,6 +379,11 @@
       errorArea.style.display = 'none';
 
       try {
+        console.log('Creaating reminder with payload:', {
+          chatId: context.chatId,
+          chatName: context.chatName,
+          scheduledTime,
+        });
         const response = await chrome.runtime.sendMessage({
           type: 'CREATE_REMINDER',
           payload: {
@@ -387,17 +392,22 @@
             scheduledTime: scheduledTime,
           },
         });
+        console.log('response:', response);
 
         if (response && response.success) {
+            console.log('Reminder created successfully:', response.reminder);
           showSuccess(overlay, context, scheduledTime);
         } else {
+            console.error('Failed to create reminder:', response && response.error);
           const errorMsg = (response && response.error) || i18n('storageError', 'Failed to create reminder');
           errorArea.textContent = errorMsg;
           errorArea.style.display = 'block';
           confirmBtn.classList.remove('loading');
           confirmBtn.disabled = false;
         }
+        console.log('Finished handling confirm click');
       } catch (_err) {
+        console.error('Error creating reminder:', _err);
         errorArea.textContent = i18n('storageError', 'Failed to save reminder. Please try again.');
         errorArea.style.display = 'block';
         confirmBtn.classList.remove('loading');

@@ -7,9 +7,7 @@
  * @module storage-service
  */
 
-const { STORAGE_KEYS, DEFAULT_PLAN } = typeof require !== 'undefined'
-  ? require('../lib/constants')
-  : {};
+import { STORAGE_KEYS, DEFAULT_PLAN } from '../lib/constants.js';
 
 /**
  * Retrieves all reminders from storage.
@@ -62,6 +60,14 @@ function onRemindersChanged(callback) {
       callback(newReminders);
     }
   });
+}
+
+export {
+    getReminders,
+    saveReminders,
+    getUserPlan,
+    saveUserPlan,
+    onRemindersChanged,
 }
 
 const StorageService = {

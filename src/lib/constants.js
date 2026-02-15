@@ -90,6 +90,24 @@ const MUTATION_OBSERVER_DEBOUNCE_MS = 100;
 /** @readonly */
 const SCHEMA_VERSION = 1;
 
+// ES6 exports
+export {
+  PLAN_LIMITS,
+  ALARM_PREFIX,
+  STORAGE_KEYS,
+  DEFAULT_PLAN,
+  REMINDER_STATUS,
+  MESSAGE_TYPES,
+  DEFAULT_PRESET_TIMES,
+  CLEANUP,
+  STORAGE_QUOTA,
+  CSS_SELECTORS,
+  WHATSAPP_URLS,
+  BADGE_COLOR,
+  MUTATION_OBSERVER_DEBOUNCE_MS,
+  SCHEMA_VERSION,
+};
+
 // Export for both module and non-module contexts
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
