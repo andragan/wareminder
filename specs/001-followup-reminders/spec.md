@@ -99,7 +99,7 @@ A business owner glances at their Chrome toolbar and sees the extension icon dis
 - **FR-008**: System MUST update the extension icon badge to reflect the count of pending reminders in real time.
 - **FR-009**: System MUST enforce the free-plan limit of 5 active reminders and display a clear upgrade message when the limit is reached.
 - **FR-010**: System MUST allow users to delete a reminder with a confirmation step to prevent accidental deletion.
-- **FR-011**: System MUST retain all reminder data across browser restarts, extension updates, and Chrome storage sync boundaries.
+- **FR-011**: System MUST retain all reminder data across browser restarts and extension updates.
 - **FR-012**: System MUST display a user-friendly empty state in the popup when no reminders exist.
 - **FR-013**: System MUST detect when the "Set Reminder" button cannot be injected into WhatsApp Web's DOM and provide a fallback path through the popup.
 - **FR-014**: System MUST handle notification clicks when WhatsApp Web is not open by launching a new tab to the correct chat URL.
@@ -120,7 +120,7 @@ A business owner glances at their Chrome toolbar and sees the extension icon dis
 - **SC-001**: Users can create a reminder from any WhatsApp Web chat in 3 clicks or fewer and under 10 seconds total interaction time.
 - **SC-002**: 95% of due reminders result in a visible desktop notification within 60 seconds of the scheduled time.
 - **SC-003**: System supports at least 10,000 stored reminders per user without perceptible lag when opening the popup dashboard.
-- **SC-004**: The popup dashboard renders its initial view in under 1 second from the moment the user clicks the extension icon.
+- **SC-004**: The popup dashboard renders its initial view in under 100 milliseconds from the moment the user clicks the extension icon (aligned with Constitution IV performance gate).
 - **SC-005**: 90% of first-time users successfully create and receive their first reminder without external help or documentation.
 - **SC-006**: Clicking a notification opens the correct WhatsApp Web chat within 3 seconds.
 - **SC-007**: Zero reminders are lost due to browser restarts, extension updates, or normal Chrome storage operations.

@@ -81,6 +81,8 @@ The core entity. Represents a user's intention to follow up with a specific What
 | `pendingCount` | `reminders.filter(r => r.status === "pending").length` | Badge count (FR-008) |
 | `navigationUrl` | `https://web.whatsapp.com/send?phone=${chatId.replace("@c.us", "")}` | Notification click-through (FR-006, FR-014) |
 
+> **MVP Limitation — Group Chats**: The `send?phone=` URL format only works for individual chats (`@c.us`). Group chats (`@g.us`) cannot be deep-linked via URL. For MVP, notification click-through for group reminders will open `web.whatsapp.com` without navigating to the specific group. A future enhancement may use the content script to navigate programmatically.
+
 ---
 
 ### 2. UserPlan

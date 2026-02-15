@@ -27,7 +27,11 @@
   "content_scripts": [
     {
       "matches": ["*://web.whatsapp.com/*"],
-      "js": ["src/content/injector.js"],
+      "js": [
+        "src/content/injector.js",
+        "src/content/chat-observer.js",
+        "src/content/reminder-prompt.js"
+      ],
       "css": ["src/content/styles.css"],
       "run_at": "document_idle"
     }
