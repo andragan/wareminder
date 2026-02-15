@@ -48,6 +48,31 @@ Chrome extension (Manifest V3) that enables WhatsApp Web users to set per-chat f
 
 **Gate Result**: ✅ ALL PASS — Proceed to Phase 0
 
+### Post-Design Gate (Phase 1 Re-check)
+
+| # | Constitution Principle | Requirement | Status | Design Evidence |
+|---|----------------------|-------------|--------|-----------------|
+| 1 | I. Code Quality | Single responsibility per file | ✅ PASS | 13 source files, each with one concern (see Project Structure) |
+| 2 | I. Code Quality | Functions ≤40 lines; JSDoc | ✅ PASS | Service contracts define small, focused functions |
+| 3 | I. Code Quality | `// @ts-check`; ESLint zero warnings | ✅ PASS | Technical Context + quickstart.md specify both |
+| 4 | I. Code Quality | Constants in dedicated file | ✅ PASS | `src/lib/constants.js` in project structure |
+| 5 | I. Code Quality | MV3 best practices; minimal permissions | ✅ PASS | `contracts/manifest.md`: 3 API perms + 1 host, no remote code, no `<all_urls>` |
+| 6 | II. Testing | Unit ≥80% coverage; integration tests | ✅ PASS | `quickstart.md` sets 80% threshold; `tests/integration/` defined |
+| 7 | II. Testing | E2E per user story; `npm test` | ✅ PASS | `tests/e2e/` has 4 test files mapping to 4 user stories |
+| 8 | II. Testing | Test files mirror source | ✅ PASS | `tests/unit/services/` mirrors `src/services/` |
+| 9 | III. UX | Matches WhatsApp Web visual language | ✅ PASS | `src/content/styles.css` scoped to WhatsApp styling; research §1.1 specifies semantic selectors |
+| 10 | III. UX | 3 clicks or fewer | ✅ PASS | Flow: (1) click "Set Reminder" → (2) select time → (3) confirm = 2-3 clicks |
+| 11 | III. UX | Inline errors, no `alert()` | ✅ PASS | `contracts/messages.md` defines error messages; content script shows inline feedback |
+| 12 | III. UX | Text externalized for i18n | ✅ PASS | `src/_locales/en/messages.json` in structure; `default_locale: "en"` in manifest |
+| 13 | IV. Performance | Injection <50ms; popup <100ms | ✅ PASS | No framework; content script is thin UI layer; popup reads from storage directly |
+| 14 | IV. Performance | Max 1 read + 1 write per action | ✅ PASS | Single-writer pattern; `storage-service.js` batches via `updateReminders()` |
+| 15 | IV. Performance | Virtual scroll/pagination >100 | ✅ PASS | Noted in data-model.md storage budget; popup implements pagination |
+| 16 | IV. Performance | Bundle ≤500KB; memory <5MB | ✅ PASS | Vanilla JS, no runtime dependencies, ~13 source files |
+| 17 | Dev Workflow | Branch naming; Conventional Commits | ✅ PASS | Branch `001-followup-reminders` active |
+| 18 | Quality Gates | All gates defined | ✅ PASS | Lint, test, perf, manifest, size, UX gates all addressable |
+
+**Post-Design Gate Result**: ✅ ALL PASS — Design is constitution-compliant. Ready for Phase 2 task breakdown.
+
 ## Project Structure
 
 ### Documentation (this feature)
