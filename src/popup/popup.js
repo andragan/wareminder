@@ -257,7 +257,7 @@
     // Info section (clickable to open chat)
     const info = document.createElement('div');
     info.className = 'reminder-info';
-    info.addEventListener('click', () => openChat(reminder.chatId));
+    info.addEventListener('click', () => openChat(reminder.chatId, reminder.chatName));
     info.title = 'Open chat in WhatsApp Web';
 
     const name = document.createElement('div');
@@ -296,7 +296,7 @@
     openBtn.textContent = '💬';
     openBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      openChat(reminder.chatId);
+      openChat(reminder.chatId, reminder.chatName);
     });
     actions.appendChild(openBtn);
 
@@ -379,26 +379,47 @@
 
   /**
    * Opens a WhatsApp Web chat by sending a message to the service worker.
-   * @param {string} chatId - Chat JID
+   * @param {string} chatId - Chat JID or slug fallback
+   * @param {string} [chatName] - Chat display name (used as fallback for slug IDs)
    */
-  async function openChat(chatId) {
+  async function openChat(chatId, chatName) {
     try {
-      // Build the URL and open it directly
-      const phone = chatId.replace('@c.us', '').replace('@g.us', '');
-      const url = chatId.endsWith('@c.us')
-        ? `https://web.whatsapp.com/send?phone=${phone}`
-        : 'https://web.whatsapp.com';
+      console.log('[WAReminder][openChat] called with chatId:', chatId, 'chatName:', chatName, 'type:', typeof chatId);
+
+      const isJid = chatId.endsWith('@c.us') || chatId.endsWith('@g.us');
+      let url;
+
+      if (isJid && chatId.endsWith('@c.us')) {
+        // Real JID for individual chat — deep-link with phone number
+        const phone = chatId.replace('@c.us', '');
+        url = `https://web.whatsapp.com/send?phone=${phone}`;
+        console.log('[WAReminder][openChat] JID chat, phone:', phone, 'url:', url);
+      } else if (isJid && chatId.endsWith('@g.us')) {
+        // Group JID — can't deep-link, just open WhatsApp
+        url = 'https://web.whatsapp.com';
+        console.log('[WAReminder][openChat] group JID, opening WA home');
+      } else {
+        // Slug fallback — chatId is not a real JID
+        // Open WhatsApp Web; user will need to find the chat manually
+        url = 'https://web.whatsapp.com';
+        console.warn('[WAReminder][openChat] chatId is a slug, not a JID:', chatId,
+          '— cannot deep-link. Chat name:', chatName || '(unknown)');
+      }
 
       // Find or create WhatsApp tab
       const tabs = await chrome.tabs.query({ url: 'https://web.whatsapp.com/*' });
+      console.log('[WAReminder][openChat] existing WA tabs:', tabs.length, tabs.map(t => ({ id: t.id, url: t.url })));
       if (tabs.length > 0) {
+        console.log('[WAReminder][openChat] updating existing tab', tabs[0].id);
         await chrome.tabs.update(tabs[0].id, { url, active: true });
         await chrome.windows.update(tabs[0].windowId, { focused: true });
       } else {
+        console.log('[WAReminder][openChat] creating new tab');
         await chrome.tabs.create({ url, active: true });
       }
+      console.log('[WAReminder][openChat] done');
     } catch (err) {
-      console.error('Failed to open chat:', err);
+      console.error('[WAReminder][openChat] Failed to open chat:', err, 'chatId was:', chatId);
     }
   }
 

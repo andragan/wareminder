@@ -38,24 +38,67 @@
 
       let chatId = null;
 
-      // Try to extract chatId from the current URL
-      // WhatsApp Web URLs contain phone numbers or group IDs
+      // Strategy 1: Extract from URL phone param (works with /send?phone= links)
       const urlParams = new URLSearchParams(window.location.search);
-      
-      // For individual chats: ?phone=XXXXXXXXXX
       const phoneParam = urlParams.get('phone');
       if (phoneParam) {
-        // Format as WhatsApp ID: phone@c.us
         chatId = `${phoneParam}@c.us`;
+        console.log('[WAReminder] chatId from URL phone param:', chatId);
       }
-      
-      // For group chats: typically no phone param, fall back to chat name
-      // As fallback identifier for groups (will be stored locally)
+
+      // Strategy 2: Look for data-id attributes on conversation elements
+      // WhatsApp Web stores the JID in data-id on certain panel elements
+      if (!chatId) {
+        const conversationPanel = document.querySelector(
+          '#main [data-id]'
+        );
+        if (conversationPanel) {
+          const dataId = conversationPanel.getAttribute('data-id');
+          // data-id often has format "true_PHONE@c.us_MSGID" or just "PHONE@c.us"
+          const jidMatch = dataId && dataId.match(/(\d+@[cg]\.us)/);
+          if (jidMatch) {
+            chatId = jidMatch[1];
+            console.log('[WAReminder] chatId from data-id attribute:', chatId);
+          }
+        }
+      }
+
+      // Strategy 3: Look for JID in any data-id within #main (message bubbles etc.)
+      if (!chatId) {
+        const elementsWithDataId = document.querySelectorAll('#main [data-id]');
+        for (const el of elementsWithDataId) {
+          const dataId = el.getAttribute('data-id');
+          const jidMatch = dataId && dataId.match(/(\d+@[cg]\.us)/);
+          if (jidMatch) {
+            chatId = jidMatch[1];
+            console.log('[WAReminder] chatId from message data-id:', chatId);
+            break;
+          }
+        }
+      }
+
+      // Strategy 4: Check for the chat's phone number in the header subtitle / about section
+      if (!chatId) {
+        const subtitleEl = header.querySelector('span[data-testid="conversation-info-header-chat-subtitle"]') ||
+          header.querySelector('._amig span') ||
+          header.querySelector('span.x1jchvi3');
+        if (subtitleEl) {
+          const subtitleText = subtitleEl.textContent || '';
+          // Match phone-like patterns: +Country Code followed by digits
+          const phoneMatch = subtitleText.match(/\+?(\d[\d\s-]{7,})/);
+          if (phoneMatch) {
+            const cleanPhone = phoneMatch[1].replace(/[\s-]/g, '');
+            chatId = `${cleanPhone}@c.us`;
+            console.log('[WAReminder] chatId from header subtitle phone:', chatId);
+          }
+        }
+      }
+
+      // Fallback: slugified chat name (won't support deep-linking to chat)
       if (!chatId) {
         const chatNameId = chatName.toLowerCase().replace(/\s+/g, '_');
-        // Create a deterministic ID if we can't find the real one
-        // This allows local reminders to work even if we can't get the phone
         chatId = chatNameId;
+        console.warn('[WAReminder] Could not extract real chatId, using slug fallback:', chatId);
       }
 
       return {
