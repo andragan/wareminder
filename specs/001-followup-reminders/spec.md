@@ -103,11 +103,14 @@ A business owner glances at their Chrome toolbar and sees the extension icon dis
 - **FR-012**: System MUST display a user-friendly empty state in the popup when no reminders exist.
 - **FR-013**: System MUST detect when the "Set Reminder" button cannot be injected into WhatsApp Web's DOM and provide a fallback path through the popup.
 - **FR-014**: System MUST handle notification clicks when WhatsApp Web is not open by launching a new tab to the correct chat URL.
+- **FR-015**: System MUST automatically delete completed reminders 30 days after their completion timestamp to prevent unbounded storage growth.
+- **FR-016**: System MUST keep reminders in "pending" status when their scheduled time passes without a notification being delivered (e.g., notifications denied), displaying them as "overdue" in the popup dashboard with a visual distinction from upcoming reminders.
+- **FR-017**: System MUST use the Chrome Alarms API to schedule reminder notifications, ensuring alarms persist across service worker restarts and extension updates.
 
 ### Key Entities
 
-- **Reminder**: Represents a single follow-up intention. Key attributes: unique identifier, associated chat identifier, contact/chat display name, scheduled reminder time, creation timestamp, current status (pending, completed). A reminder belongs to exactly one chat and transitions from pending to completed (or is deleted).
-- **Chat Reference**: A lightweight reference to a WhatsApp Web conversation. Key attributes: chat identifier (derived from WhatsApp Web's DOM), display name of the contact or group. Used to associate a reminder with a specific conversation and to navigate back to it.
+- **Reminder**: Represents a single follow-up intention. Key attributes: unique identifier, associated chat identifier, contact/chat display name, scheduled reminder time, creation timestamp, current status (pending, completed), completion timestamp (set when marked complete). A reminder belongs to exactly one chat and transitions from pending to completed (or is deleted). Completed reminders are automatically purged 30 days after completion.
+- **Chat Reference**: A lightweight reference to a WhatsApp Web conversation. Key attributes: chat identifier (phone number or JID extracted from WhatsApp Web's internal data or URL, chosen for stability across DOM changes and sessions), display name of the contact or group. Used to associate a reminder with a specific conversation and to navigate back to it.
 - **User Plan**: Tracks the user's subscription tier. Key attributes: plan type (free or paid), active reminder count against plan limit. Determines whether reminder creation is permitted.
 
 ## Success Criteria *(mandatory)*
@@ -128,8 +131,20 @@ A business owner glances at their Chrome toolbar and sees the extension icon dis
 ## Assumptions
 
 - Users access WhatsApp Web through Google Chrome on desktop (Windows, macOS, or Linux). Other Chromium-based browsers (Edge, Brave) are expected to work but are not primary targets for MVP.
-- WhatsApp Web's chat header DOM structure is stable enough to inject a button reliably. The extension will use robust, scoped CSS selectors and a MutationObserver to handle dynamic DOM changes.
+- WhatsApp Web's chat header DOM structure is stable enough to inject a button reliably. The extension will use robust, scoped CSS selectors and a MutationObserver to handle dynamic DOM changes. Chat identifiers are derived from WhatsApp Web's internal data (phone number or JID) rather than DOM-positional attributes, ensuring stability across sessions and updates.
 - "Tonight" defaults to 8:00 PM and "Tomorrow" defaults to 9:00 AM in the user's local timezone. These defaults cover the most common business follow-up patterns.
 - The free plan limit of 5 active reminders is sufficient to demonstrate value and motivate upgrades. "Active" means reminders with status "pending" — completed and deleted reminders do not count against the limit.
 - Chrome's local storage is the persistence layer for MVP. Migration to a cloud backend (e.g., Supabase) is a future concern and does not affect this specification.
-- Users grant notification permissions when prompted by the browser. If they decline, the extension will still function for creating and managing reminders, but notifications will not fire — a visual indicator in the popup will alert them to enable notifications.
+- The Chrome Alarms API is the scheduling mechanism for reminder notifications. Its 1-minute minimum granularity aligns with the 60-second notification tolerance (SC-002). Alarms persist across service worker restarts and extension updates, satisfying the data durability edge case.
+- Required Chrome extension permissions: `alarms`, `storage`, `notifications`. Host permission: `*://web.whatsapp.com/*`. The `activeTab` permission is not needed — the explicit host permission provides programmatic tab access required for notification click-through navigation (FR-006, FR-014).
+- Users grant notification permissions when prompted by the browser. If they decline, the extension will still function for creating and managing reminders, but notifications will not fire — a visual indicator in the popup will alert them to enable notifications. Reminders whose scheduled time passes without notification will remain pending and appear as "overdue" in the dashboard.
+
+## Clarifications
+
+### Session 2026-02-15
+
+- Q: What happens to completed reminders over time? → A: Auto-delete completed reminders after 30 days.
+- Q: What happens to reminders when notification permissions are denied and the scheduled time passes? → A: Reminders stay pending, shown as "overdue" in dashboard.
+- Q: How should the chat identifier be derived for stability across sessions? → A: Use phone number / JID from WhatsApp Web's internal data or URL.
+- Q: What scheduling mechanism should be used for reminder notifications in MV3? → A: Chrome Alarms API (1-minute granularity, persists across service worker restarts).
+- Q: What Chrome permissions should the extension declare? → A: `alarms`, `storage`, `notifications`, host permission `*://web.whatsapp.com/*` (no `activeTab`).
