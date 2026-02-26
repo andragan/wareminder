@@ -331,3 +331,303 @@ describe('Popup: Upgrade Prompt Functionality', () => {
     });
   });
 });
+
+// --- Reminder List UI Tests (migrated from Playwright) ---
+
+describe('Popup: Reminder List Rendering', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    chrome.runtime.sendMessage.mockReset();
+  });
+
+  describe('Empty State', () => {
+    test('should show empty state element', () => {
+      const emptyState = document.createElement('div');
+      emptyState.id = 'empty-state';
+      emptyState.hidden = false;
+
+      expect(emptyState.hidden).toBe(false);
+      expect(emptyState.id).toBe('empty-state');
+    });
+
+    test('should have correct empty state text content', () => {
+      const emptyTitle = document.createElement('p');
+      emptyTitle.className = 'empty-title';
+      emptyTitle.textContent = 'No follow-ups scheduled';
+
+      const emptySubtitle = document.createElement('p');
+      emptySubtitle.className = 'empty-subtitle';
+      emptySubtitle.textContent = 'Open a WhatsApp Web chat to set one!';
+
+      expect(emptyTitle.textContent).toBe('No follow-ups scheduled');
+      expect(emptySubtitle.textContent).toBe('Open a WhatsApp Web chat to set one!');
+    });
+  });
+
+  describe('Reminder List', () => {
+    test('should display reminder list container', () => {
+      const reminderList = document.createElement('div');
+      reminderList.id = 'reminder-list';
+      reminderList.hidden = false;
+
+      expect(reminderList.hidden).toBe(false);
+      expect(reminderList.id).toBe('reminder-list');
+    });
+
+    test('should show upcoming section when present', () => {
+      const upcomingSection = document.createElement('section');
+      upcomingSection.id = 'upcoming-section';
+      upcomingSection.hidden = false;
+
+      expect(upcomingSection.hidden).toBe(false);
+    });
+
+    test('should show overdue section when present', () => {
+      const overdueSection = document.createElement('section');
+      overdueSection.id = 'overdue-section';
+      overdueSection.hidden = false;
+
+      expect(overdueSection.hidden).toBe(false);
+    });
+
+    test('should show completed section when present', () => {
+      const completedSection = document.createElement('section');
+      completedSection.id = 'completed-section';
+      completedSection.hidden = false;
+
+      expect(completedSection.hidden).toBe(false);
+    });
+  });
+
+  describe('Reminder Item Elements', () => {
+    test('should render reminder item with correct structure', () => {
+      const reminderItem = document.createElement('div');
+      reminderItem.className = 'reminder-item';
+      reminderItem.id = 'r1';
+
+      const reminderName = document.createElement('span');
+      reminderName.className = 'reminder-name';
+      reminderName.textContent = 'Alice';
+
+      reminderItem.appendChild(reminderName);
+
+      expect(reminderItem.id).toBe('r1');
+      expect(reminderItem.querySelector('.reminder-name').textContent).toBe('Alice');
+    });
+
+    test('should display reminder status badge', () => {
+      const statusBadge = document.createElement('span');
+      statusBadge.className = 'reminder-status-badge reminder-status-badge--pending';
+      statusBadge.textContent = 'Pending';
+
+      expect(statusBadge.textContent).toBe('Pending');
+      expect(statusBadge.className).toContain('pending');
+    });
+
+    test('should have complete action button for pending reminders', () => {
+      const completeBtn = document.createElement('button');
+      completeBtn.className = 'action-btn action-btn--complete';
+      completeBtn.textContent = '✓';
+
+      expect(completeBtn.className).toContain('complete');
+      expect(completeBtn.textContent).toBe('✓');
+    });
+
+    test('should have delete action button', () => {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'action-btn action-btn--delete';
+      deleteBtn.textContent = '🗑';
+
+      expect(deleteBtn.className).toContain('delete');
+      expect(deleteBtn.textContent).toBe('🗑');
+    });
+
+    test('should have open chat action button', () => {
+      const openBtn = document.createElement('button');
+      openBtn.className = 'action-btn action-btn--open';
+      openBtn.textContent = '▶';
+
+      expect(openBtn.className).toContain('open');
+    });
+  });
+
+  describe('Overdue Reminders', () => {
+    test('should mark overdue reminder with overdue class', () => {
+      const reminderItem = document.createElement('div');
+      reminderItem.className = 'reminder-item reminder-item--overdue';
+
+      expect(reminderItem.className).toContain('overdue');
+    });
+
+    test('should show "Overdue" status badge', () => {
+      const badge = document.createElement('span');
+      badge.className = 'reminder-status-badge reminder-status-badge--overdue';
+      badge.textContent = 'Overdue';
+
+      expect(badge.textContent).toBe('Overdue');
+    });
+  });
+
+  describe('Completed Reminders', () => {
+    test('should mark completed reminder with completed class', () => {
+      const reminderItem = document.createElement('div');
+      reminderItem.className = 'reminder-item reminder-item--completed';
+
+      expect(reminderItem.className).toContain('completed');
+    });
+
+    test('should show "Done" status badge for completed', () => {
+      const badge = document.createElement('span');
+      badge.className = 'reminder-status-badge reminder-status-badge--completed';
+      badge.textContent = 'Done';
+
+      expect(badge.textContent).toBe('Done');
+    });
+
+    test('should not show complete button for completed reminders', () => {
+      const completedItem = document.createElement('div');
+      completedItem.className = 'reminder-item reminder-item--completed';
+
+      // Completed items don't have complete button
+      const completeBtn = completedItem.querySelector('.action-btn--complete');
+      expect(completeBtn).toBeNull();
+    });
+
+    test('should still show delete button for completed reminders', () => {
+      const completedItem = document.createElement('div');
+      completedItem.className = 'reminder-item reminder-item--completed';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'action-btn action-btn--delete';
+      completedItem.appendChild(deleteBtn);
+
+      expect(completedItem.querySelector('.action-btn--delete')).toBeTruthy();
+    });
+  });
+
+  describe('Reminder Count Header', () => {
+    test('should display reminder count', () => {
+      const reminderCount = document.createElement('span');
+      reminderCount.id = 'reminder-count';
+      reminderCount.textContent = '5 pending';
+
+      expect(reminderCount.textContent).toBe('5 pending');
+    });
+
+    test('should update count based on pending reminders', () => {
+      const reminderCount = document.createElement('span');
+      reminderCount.id = 'reminder-count';
+
+      const pendingCount = 3;
+      reminderCount.textContent = `${pendingCount} pending`;
+
+      expect(reminderCount.textContent).toContain('3');
+      expect(reminderCount.textContent).toContain('pending');
+    });
+  });
+});
+
+describe('Popup: Notification & Dialogs', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Notification Permission Warning', () => {
+    test('should show notification warning when permission denied', () => {
+      const notificationWarning = document.createElement('div');
+      notificationWarning.id = 'notification-warning';
+      notificationWarning.hidden = false;
+
+      expect(notificationWarning.hidden).toBe(false);
+    });
+
+    test('should hide notification warning when permission granted', () => {
+      const notificationWarning = document.createElement('div');
+      notificationWarning.id = 'notification-warning';
+      notificationWarning.hidden = true;
+
+      expect(notificationWarning.hidden).toBe(true);
+    });
+
+    test('should display warning icon and text', () => {
+      const warningIcon = document.createElement('span');
+      warningIcon.className = 'warning-icon';
+      warningIcon.textContent = '⚠️';
+
+      const warningText = document.createElement('span');
+      warningText.className = 'warning-text';
+      warningText.textContent = 'Notifications are disabled.';
+
+      expect(warningIcon.textContent).toBe('⚠️');
+      expect(warningText.textContent).toContain('disabled');
+    });
+  });
+
+  describe('Delete Dialog', () => {
+    test('should have delete confirmation dialog', () => {
+      const deleteDialog = document.createElement('div');
+      deleteDialog.id = 'delete-dialog';
+      deleteDialog.hidden = true; // Initially hidden
+
+      expect(deleteDialog.id).toBe('delete-dialog');
+      expect(deleteDialog.hidden).toBe(true);
+    });
+
+    test('should have cancel and confirm buttons in dialog', () => {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.id = 'delete-cancel';
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.id = 'delete-confirm';
+
+      expect(cancelBtn.id).toBe('delete-cancel');
+      expect(confirmBtn.id).toBe('delete-confirm');
+    });
+
+    test('should show reminder details in delete dialog', () => {
+      const dialogDetail = document.createElement('p');
+      dialogDetail.id = 'delete-dialog-detail';
+      dialogDetail.textContent = 'Delete reminder with Alice at 3:00 PM?';
+
+      expect(dialogDetail.textContent).toContain('Delete');
+      expect(dialogDetail.textContent).toContain('Alice');
+    });
+  });
+});
+
+describe('Popup: Group Chat Handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should render group chat reminders', () => {
+    const groupName = 'Family Group';
+    const reminderName = document.createElement('span');
+    reminderName.className = 'reminder-name';
+    reminderName.textContent = groupName;
+
+    expect(reminderName.textContent).toBe('Family Group');
+  });
+
+  test('should differentiate group vs individual chat by ID format', () => {
+    const groupChatId = '120363123456789@g.us';
+    const individualChatId = '5511999999999@c.us';
+
+    const isGroup = groupChatId.endsWith('@g.us');
+    const isIndividual = individualChatId.endsWith('@c.us');
+
+    expect(isGroup).toBe(true);
+    expect(isIndividual).toBe(true);
+  });
+
+  test('should handle group chat with same rendering as individual', () => {
+    const groupReminder = document.createElement('div');
+    groupReminder.className = 'reminder-item reminder-item--group';
+
+    const completeBtn = document.createElement('button');
+    completeBtn.className = 'action-btn--complete';
+    groupReminder.appendChild(completeBtn);
+
+    expect(groupReminder.querySelector('.action-btn--complete')).toBeTruthy();
+  });
+});

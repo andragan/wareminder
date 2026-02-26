@@ -9,7 +9,6 @@ module.exports = {
   ],
   testPathIgnorePatterns: [
     '/node_modules/',
-    '<rootDir>/tests/browser/',
   ],
   collectCoverageFrom: [
     'src/lib/**/*.js',
