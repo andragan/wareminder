@@ -81,6 +81,41 @@ body {
   cursor: pointer;
 }
 
+/* ========== Cancellation Warning ========== */
+.cancellation-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fee;
+  border-left: 4px solid #dc3545;
+  flex-shrink: 0;
+}
+
+.cancellation-warning .warning-icon {
+  font-size: 18px;
+}
+
+.cancellation-warning .warning-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #d32f2f;
+  margin: 0;
+}
+
+.cancellation-warning .warning-text {
+  font-size: 12px;
+  color: #c62828;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cancellation-warning .btn--secondary {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 /* ========== Loading State ========== */
 .loading-state {
   display: flex;
@@ -395,4 +430,237 @@ body {
 
 .reminder-list::-webkit-scrollbar-thumb:hover {
   background: #a0a0a0;
+}
+/* ========== Upgrade Prompt ========== */
+.upgrade-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  justify-content: center;
+  gap: 16px;
+  color: #111b21;
+  flex-shrink: 0;
+}
+
+.upgrade-prompt-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.upgrade-prompt-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.upgrade-prompt-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+}
+
+.upgrade-prompt-description {
+  font-size: 13px;
+  color: #667781;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.upgrade-details {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.upgrade-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.upgrade-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #008069;
+}
+
+.upgrade-period {
+  font-size: 13px;
+  color: #667781;
+}
+
+.upgrade-trial-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e7f5f3;
+  color: #005c52;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+.upgrade-billing-info {
+  font-size: 12px;
+  color: #8a8d91;
+  text-align: center;
+  margin: 0;
+}
+
+.upgrade-button {
+  width: 100%;
+  padding: 12px 20px;
+  background: #008069;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.upgrade-button:hover {
+  opacity: 0.85;
+}
+
+.upgrade-button:active {
+  opacity: 0.75;
+}
+
+.upgrade-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  background: #ffebee;
+  border: 1px solid #ff6b6b;
+  border-radius: 8px;
+}
+
+.upgrade-error-message {
+  font-size: 13px;
+  color: #c41c3b;
+  text-align: center;
+}
+
+.upgrade-retry {
+  width: 100%;
+  padding: 10px 16px;
+  background: #008069;
+  color: #ffffff;
+  font-size: 13px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.upgrade-retry:hover {
+  opacity: 0.85;
+}
+
+/* Primary button style */
+.btn--primary {
+  background: #008069;
+  color: #ffffff;
+}
+
+.btn--primary:hover {
+  opacity: 0.85;
+}
+
+.btn--secondary {
+  background: #e9edef;
+  color: #111b21;
+}
+
+.btn--secondary:hover {
+  opacity: 0.85;
+}
+
+/* ========== Premium Badge ========== */
+.premium-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #dcf8e8;
+  color: #005c52;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-right: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========== Account Settings ========== */
+.account-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  gap: 16px;
+  color: #111b21;
+  flex-shrink: 0;
+}
+
+.account-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.account-settings-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667781;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+.settings-value {
+  font-size: 14px;
+  color: #111b21;
+  margin: 0;
+  font-weight: 500;
+}
+
+.manage-subscription-button {
+  width: 100%;
+  padding: 12px 20px;
+  background: #008069;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.manage-subscription-button:hover {
+  opacity: 0.85;
 }

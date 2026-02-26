@@ -48,6 +48,48 @@ async function saveUserPlan(plan) {
 }
 
 /**
+ * Retrieves the user's subscription status from storage.
+ * Returns null if not set (user not signed up for premium).
+ * @returns {Promise<?{ planType: string, trialEndDate: ?string, nextBillingDate: ?string, status: string, lastSyncedAt: number }>}
+ */
+async function getSubscriptionStatus() {
+  const result = await chrome.storage.local.get(STORAGE_KEYS.SUBSCRIPTION_STATUS);
+  return result[STORAGE_KEYS.SUBSCRIPTION_STATUS] || null;
+}
+
+/**
+ * Saves the user's subscription status to storage.
+ * @param {{ planType: string, trialEndDate: ?string, nextBillingDate: ?string, status: string, lastSyncedAt: number }} status
+ * @returns {Promise<void>}
+ */
+async function saveSubscriptionStatus(status) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.SUBSCRIPTION_STATUS]: status });
+}
+
+/**
+ * Clears the subscription status from storage (e.g., on logout).
+ * @returns {Promise<void>}
+ */
+async function clearSubscriptionStatus() {
+  await chrome.storage.local.remove(STORAGE_KEYS.SUBSCRIPTION_STATUS);
+}
+
+/**
+ * Registers a listener for changes to the subscription status in storage.
+ * Fires when subscription status is updated from backend sync.
+ * @param {(status: ?object) => void} callback - Called with the new subscription status or null
+ * @returns {void}
+ */
+function onSubscriptionStatusChanged(callback) {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes[STORAGE_KEYS.SUBSCRIPTION_STATUS]) {
+      const newStatus = changes[STORAGE_KEYS.SUBSCRIPTION_STATUS].newValue || null;
+      callback(newStatus);
+    }
+  });
+}
+
+/**
  * Registers a listener for changes to the reminders key in storage.
  * Fires when any context modifies reminders.
  * @param {(reminders: Array<object>) => void} callback - Called with the new reminders array
@@ -67,7 +109,11 @@ export {
     saveReminders,
     getUserPlan,
     saveUserPlan,
+    getSubscriptionStatus,
+    saveSubscriptionStatus,
+    clearSubscriptionStatus,
     onRemindersChanged,
+    onSubscriptionStatusChanged,
 }
 
 const StorageService = {
@@ -75,7 +121,11 @@ const StorageService = {
   saveReminders,
   getUserPlan,
   saveUserPlan,
+  getSubscriptionStatus,
+  saveSubscriptionStatus,
+  clearSubscriptionStatus,
   onRemindersChanged,
+  onSubscriptionStatusChanged,
 };
 
 if (typeof module !== 'undefined' && module.exports) {

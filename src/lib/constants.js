@@ -8,7 +8,7 @@
 
 /** @readonly */
 const PLAN_LIMITS = Object.freeze({
-  FREE_ACTIVE_REMINDER_LIMIT: 3,
+  FREE_ACTIVE_REMINDER_LIMIT: 5,
   PAID_ACTIVE_REMINDER_LIMIT: -1, // -1 represents unlimited
 });
 
@@ -19,6 +19,7 @@ const ALARM_PREFIX = 'reminder-';
 const STORAGE_KEYS = Object.freeze({
   REMINDERS: 'reminders',
   USER_PLAN: 'userPlan',
+  SUBSCRIPTION_STATUS: 'subscriptionStatus',
   SCHEMA_VERSION: 'schemaVersion',
 });
 
@@ -42,6 +43,52 @@ const MESSAGE_TYPES = Object.freeze({
   GET_REMINDERS: 'GET_REMINDERS',
   GET_PLAN_STATUS: 'GET_PLAN_STATUS',
   CHECK_NOTIFICATION_PERMISSION: 'CHECK_NOTIFICATION_PERMISSION',
+  SYNC_SUBSCRIPTION: 'SYNC_SUBSCRIPTION',
+  SUBSCRIPTION_STATUS_CHANGED: 'SUBSCRIPTION_STATUS_CHANGED',
+});
+
+/** @readonly */
+const SUBSCRIPTION_CONSTANTS = Object.freeze({
+  TRIAL_DAYS: 14,
+  GRACE_PERIOD_DAYS: 3,
+  SYNC_INTERVAL_HOURS: 24,
+  PAYMENT_RETRY_INTERVAL_HOURS: 24,
+});
+
+/** @readonly */
+const SUBSCRIPTION_PLANS = Object.freeze({
+  FREE: 'free',
+  PREMIUM: 'premium',
+});
+
+/** @readonly */
+const SUBSCRIPTION_STATUS = Object.freeze({
+  ACTIVE: 'active',
+  CANCELLED: 'cancelled',
+  GRACE_PERIOD: 'grace_period',
+  TRIAL: 'trial',
+});
+
+/** @readonly */
+const SUBSCRIPTION_EVENT_TYPES = Object.freeze({
+  PAYMENT_SUCCESS: 'payment_success',
+  PAYMENT_FAILED: 'payment_failed',
+  TRIAL_ENDED: 'trial_ended',
+  SUBSCRIPTION_RENEWED: 'subscription_renewed',
+  SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
+  DOWNGRADE_INITIATED: 'downgrade_initiated',
+});
+
+/** @readonly */
+const SUPABASE_CONFIG = Object.freeze({
+  URL: process.env.REACT_APP_SUPABASE_URL || 'https://xxxx.supabase.co',
+  ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY || '',
+});
+
+/** @readonly */
+const STRIPE_CONFIG = Object.freeze({
+  PUBLISHABLE_KEY: process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_xxxx',
+  SECRET_KEY: process.env.STRIPE_SECRET_KEY || '', // Backend only
 });
 
 /** @readonly */
@@ -106,6 +153,12 @@ export {
   BADGE_COLOR,
   MUTATION_OBSERVER_DEBOUNCE_MS,
   SCHEMA_VERSION,
+  SUBSCRIPTION_CONSTANTS,
+  SUBSCRIPTION_PLANS,
+  SUBSCRIPTION_STATUS,
+  SUBSCRIPTION_EVENT_TYPES,
+  SUPABASE_CONFIG,
+  STRIPE_CONFIG,
 };
 
 // Export for both module and non-module contexts
@@ -125,5 +178,11 @@ if (typeof module !== 'undefined' && module.exports) {
     BADGE_COLOR,
     MUTATION_OBSERVER_DEBOUNCE_MS,
     SCHEMA_VERSION,
+    SUBSCRIPTION_CONSTANTS,
+    SUBSCRIPTION_PLANS,
+    SUBSCRIPTION_STATUS,
+    SUBSCRIPTION_EVENT_TYPES,
+    SUPABASE_CONFIG,
+    STRIPE_CONFIG,
   };
 }

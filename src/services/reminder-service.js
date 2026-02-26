@@ -11,18 +11,19 @@ import { REMINDER_STATUS, ALARM_PREFIX, STORAGE_QUOTA, CLEANUP } from '../lib/co
 import { validateCreateReminderPayload } from '../lib/validators.js';
 import { generateId } from '../lib/utils.js';
 import * as StorageService from './storage-service.js';
-import * as PlanService from './plan-service.js';
+import * as AccountService from './account-service.js';
 
 /**
  * Creates a new reminder, validates input, checks plan limits, schedules alarm.
  * @param {{ chatId: string, chatName: string, scheduledTime: number }} payload
- * @param {{ storage?: typeof StorageService, plan?: typeof PlanService }} [deps] - Injectable dependencies
+ * @param {{ userId?: string, storage?: typeof StorageService, account?: typeof AccountService }} [deps] - Injectable dependencies
  * @returns {Promise<object>} The created reminder
  * @throws {Error} ValidationError, PlanLimitError, StorageError
  */
 async function createReminder(payload, deps) {
   const storage = (deps && deps.storage) || StorageService;
-  const plan = (deps && deps.plan) || PlanService;
+  const account = (deps && deps.account) || AccountService;
+  const userId = (deps && deps.userId) || null;
 
   // Validate the payload
   const validation = validateCreateReminderPayload(payload);
@@ -32,13 +33,19 @@ async function createReminder(payload, deps) {
     throw err;
   }
 
-  // Check plan limits
-  const canCreate = await plan.canCreateReminder(storage);
-  if (!canCreate) {
-    const planStatus = await plan.getPlanStatus(storage);
-    const err = new Error(
-      `You've reached the limit of ${planStatus.activeReminderLimit} active reminders. Upgrade to create more.`
-    );
+  // Get current reminder count
+  const reminders = await storage.getReminders();
+  const pendingCount = reminders.filter((r) => r.status === REMINDER_STATUS.PENDING).length;
+
+  // Check plan limits using account-service
+  const {
+    allowed,
+    error: limitError,
+    limit,
+  } = await account.enforceReminderLimit(userId, pendingCount);
+
+  if (!allowed) {
+    const err = new Error(limitError);
     err.name = 'PlanLimitError';
     throw err;
   }
@@ -132,26 +139,31 @@ async function deleteReminder(reminderId, deps) {
 
   reminders.splice(index, 1);
   await storage.saveReminders(reminders);
-  await chrome.alarms.clear(`${ALARM_PREFIX}${reminderId}`);
-
-  return reminderId;
-}
-
-/**
- * Returns all reminders sorted by scheduledTime, with plan context.
- * @param {{ storage?: typeof StorageService, plan?: typeof PlanService }} [deps]
+  await chromuserId?: string, storage?: typeof StorageService, account?: typeof AccountService }} [deps]
  * @returns {Promise<{ reminders: Array<object>, pendingCount: number, planLimit: number, planType: string }>}
  */
 async function getAllReminders(deps) {
   const storage = (deps && deps.storage) || StorageService;
-  const plan = (deps && deps.plan) || PlanService;
+  const account = (deps && deps.account) || AccountService;
+  const userId = (deps && deps.userId) || null;
 
-  const [reminders, planStatus] = await Promise.all([
-    storage.getReminders(),
-    plan.getPlanStatus(storage),
-  ]);
+  const reminders = await storage.getReminders();
+
+  // Get user plan and limit
+  const planType = await account.getUserPlan(userId);
+  const planLimit = await account.getReminderLimit(userId);
+
+  // Count pending reminders
+  const pendingCount = reminders.filter((r) => r.status === REMINDER_STATUS.PENDING).length;
 
   // Sort by scheduledTime ascending (soonest first)
+  reminders.sort((a, b) => a.scheduledTime - b.scheduledTime);
+
+  return {
+    reminders,
+    pendingCount,
+    planLimit,
+    e ascending (soonest first)
   reminders.sort((a, b) => a.scheduledTime - b.scheduledTime);
 
   return {

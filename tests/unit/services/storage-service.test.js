@@ -116,4 +116,119 @@ describe('StorageService', () => {
       expect(callback).not.toHaveBeenCalled();
     });
   });
+
+  describe('getSubscriptionStatus', () => {
+    it('returns subscription status from storage', async () => {
+      const mockStatus = {
+        planType: 'premium',
+        status: 'active',
+        nextBillingDate: '2026-03-13',
+        lastSyncedAt: Date.now(),
+      };
+      chrome.storage.local.get.mockResolvedValue({
+        [STORAGE_KEYS.SUBSCRIPTION_STATUS]: mockStatus,
+      });
+
+      const result = await StorageService.getSubscriptionStatus();
+      expect(result).toEqual(mockStatus);
+      expect(chrome.storage.local.get).toHaveBeenCalledWith(STORAGE_KEYS.SUBSCRIPTION_STATUS);
+    });
+
+    it('returns null when subscription status not set', async () => {
+      chrome.storage.local.get.mockResolvedValue({});
+
+      const result = await StorageService.getSubscriptionStatus();
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('saveSubscriptionStatus', () => {
+    it('saves subscription status to storage', async () => {
+      const status = {
+        planType: 'premium',
+        status: 'active',
+        nextBillingDate: '2026-03-13',
+        lastSyncedAt: Date.now(),
+      };
+      chrome.storage.local.set.mockResolvedValue(undefined);
+
+      await StorageService.saveSubscriptionStatus(status);
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        [STORAGE_KEYS.SUBSCRIPTION_STATUS]: status,
+      });
+    });
+
+    it('handles grace period status', async () => {
+      const status = {
+        planType: 'premium',
+        status: 'grace_period',
+        gracePeriodEndDate: '2026-03-02',
+        lastSyncedAt: Date.now(),
+      };
+      chrome.storage.local.set.mockResolvedValue(undefined);
+
+      await StorageService.saveSubscriptionStatus(status);
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        [STORAGE_KEYS.SUBSCRIPTION_STATUS]: status,
+      });
+    });
+  });
+
+  describe('clearSubscriptionStatus', () => {
+    it('removes subscription status from storage', async () => {
+      chrome.storage.local.remove.mockResolvedValue(undefined);
+
+      await StorageService.clearSubscriptionStatus();
+      expect(chrome.storage.local.remove).toHaveBeenCalledWith(STORAGE_KEYS.SUBSCRIPTION_STATUS);
+    });
+  });
+
+  describe('onSubscriptionStatusChanged', () => {
+    it('registers a listener and calls callback on subscription status change', () => {
+      const callback = jest.fn();
+      StorageService.onSubscriptionStatusChanged(callback);
+
+      const newStatus = {
+        planType: 'premium',
+        status: 'active',
+        nextBillingDate: '2026-03-13',
+      };
+      const changes = {
+        [STORAGE_KEYS.SUBSCRIPTION_STATUS]: {
+          newValue: newStatus,
+          oldValue: null,
+        },
+      };
+      chrome.storage.onChanged.callListeners(changes, 'local');
+
+      expect(callback).toHaveBeenCalledWith(newStatus);
+    });
+
+    it('calls callback with null when subscription status is cleared', () => {
+      const callback = jest.fn();
+      StorageService.onSubscriptionStatusChanged(callback);
+
+      const changes = {
+        [STORAGE_KEYS.SUBSCRIPTION_STATUS]: {
+          newValue: undefined,
+          oldValue: { planType: 'premium' },
+        },
+      };
+      chrome.storage.onChanged.callListeners(changes, 'local');
+
+      expect(callback).toHaveBeenCalledWith(null);
+    });
+
+    it('does not call callback for non-subscription changes', () => {
+      const callback = jest.fn();
+      StorageService.onSubscriptionStatusChanged(callback);
+
+      chrome.storage.onChanged.callListeners(
+        { someOtherKey: { newValue: 'test' } },
+        'local'
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -20,6 +20,8 @@
     DELETE_REMINDER: 'DELETE_REMINDER',
     CHECK_NOTIFICATION_PERMISSION: 'CHECK_NOTIFICATION_PERMISSION',
     GET_PLAN_STATUS: 'GET_PLAN_STATUS',
+    SUBSCRIPTION_STATUS_CHANGED: 'SUBSCRIPTION_STATUS_CHANGED',
+    SYNC_SUBSCRIPTION: 'SYNC_SUBSCRIPTION',
   };
 
   // --- DOM References ---
@@ -43,6 +45,19 @@
   const deleteDialogDetail = document.getElementById('delete-dialog-detail');
   const deleteCancelBtn = document.getElementById('delete-cancel');
   const deleteConfirmBtn = document.getElementById('delete-confirm');
+  const upgradePrompt = document.getElementById('upgrade-prompt');
+  const upgradeButton = document.getElementById('upgrade-button');
+  const upgradeRetry = document.getElementById('upgrade-retry');
+  const upgradeError = document.getElementById('upgrade-error');
+  const upgradeErrorMessage = document.getElementById('upgrade-error-message');
+  const premiumBadge = document.getElementById('premium-badge');
+  const accountSettings = document.getElementById('account-settings');
+  const manageSubscriptionBtn = document.getElementById('manage-subscription-btn');
+  const subscriptionStatusDisplay = document.getElementById('subscription-status-display');
+  const nextRenewalDisplay = document.getElementById('next-renewal-display');
+  const cancellationWarning = document.getElementById('cancellation-warning');
+  const cancellationText = document.getElementById('cancellation-text');
+  const reactivateBtn = document.getElementById('reactivate-btn');
 
   // --- State ---
   let allReminders = [];
@@ -58,6 +73,7 @@
     setupStorageListener();
     await checkNotificationPermission();
     await loadReminders();
+    await checkCancellationStatus();
   }
 
   /**
@@ -89,6 +105,10 @@
         }
       });
     }
+    if (upgradeButton) upgradeButton.addEventListener('click', handleUpgradeClick);
+    if (upgradeRetry) upgradeRetry.addEventListener('click', handleUpgradeClick);
+    if (manageSubscriptionBtn) manageSubscriptionBtn.addEventListener('click', handleManageSubscription);
+    if (reactivateBtn) reactivateBtn.addEventListener('click', handleReactivate);
   }
 
   /**
@@ -161,6 +181,20 @@
     }
   }
 
+  /**
+   * Checks if subscription is cancelled and shows warning if needed.
+   */
+  async function checkCancellationStatus() {
+    try {
+      const data = await sendMessage({ type: 'GET_CANCELLATION_STATUS' });
+      if (data?.isCancelled && data?.daysRemaining !== undefined) {
+        showCancellationWarning(Math.max(0, data.daysRemaining));
+      }
+    } catch {
+      // Silently fail — not critical
+    }
+  }
+
   // --- Rendering ---
 
   /**
@@ -168,6 +202,9 @@
    */
   function renderReminders() {
     hideLoading();
+
+    // Check if free user has hit reminder limit
+    checkLimitAndShowUpgradePrompt();
 
     if (allReminders.length === 0) {
       showEmptyState();
@@ -524,6 +561,230 @@
 
   function showReminderList() {
     if (reminderList) reminderList.hidden = false;
+  }
+
+  function hideReminderList() {
+    if (reminderList) reminderList.hidden = true;
+    if (pagination) pagination.hidden = true;
+  }
+
+  function showAccountSettings() {
+    if (accountSettings) accountSettings.hidden = false;
+    hideReminderList();
+    if (reminderCount) reminderCount.textContent = '';
+  }
+
+  function hideAccountSettings() {
+    if (accountSettings) accountSettings.hidden = true;
+  }
+
+  function showCancellationWarning(daysRemaining) {
+    if (cancellationWarning) {
+      cancellationWarning.hidden = false;
+      if (cancellationText) {
+        const dayText = daysRemaining === 1 ? 'day' : 'days';
+        cancellationText.textContent = `Your subscription will revert to Free in ${daysRemaining} ${dayText}. You'll be limited to 5 reminders.`;
+      }
+    }
+    hideReminderList();
+    hideUpgradePrompt();
+  }
+
+  function hideCancellationWarning() {
+    if (cancellationWarning) cancellationWarning.hidden = true;
+  }
+
+  async function updateAccountSettingsDisplay(planData) {
+    try {
+      // Try to get subscription details from backend
+      const subscriptionStatus = await sendMessage({
+        type: 'GET_SUBSCRIPTION_DETAILS'
+      });
+
+      if (subscriptionStatus && subscriptionStatus.nextBillingDate) {
+        if (subscriptionStatusDisplay) {
+          subscriptionStatusDisplay.textContent = subscriptionStatus.planType === 'premium' ? 'Premium' : 'Free';
+        }
+        if (nextRenewalDisplay) {
+          const date = new Date(subscriptionStatus.nextBillingDate);
+          const formatted = date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+          nextRenewalDisplay.textContent = formatted;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to get subscription details:', error);
+      if (subscriptionStatusDisplay) subscriptionStatusDisplay.textContent = 'Premium';
+      if (nextRenewalDisplay) nextRenewalDisplay.textContent = '--';
+    }
+  }
+
+  function showPremiumBadge() {
+    if (premiumBadge) premiumBadge.hidden = false;
+  }
+
+  function hidePremiumBadge() {
+    if (premiumBadge) premiumBadge.hidden = true;
+  }
+
+  async function handleManageSubscription() {
+    try {
+      const response = await sendMessage({
+        type: 'REDIRECT_TO_CUSTOMER_PORTAL'
+      });
+      if (!response || !response.success) {
+        console.warn('Failed to redirect to customer portal');
+      }
+    } catch (error) {
+      console.error('Error managing subscription:', error);
+    }
+  }
+
+  async function handleReactivate() {
+    try {
+      const response = await sendMessage({
+        type: 'REACTIVATE_SUBSCRIPTION'
+      });
+      if (response?.success) {
+        // Refresh UI to show reactivated subscription
+        await loadReminders();
+        hideCancellationWarning();
+        showAccountSettings();
+      } else {
+        console.warn('Failed to reactivate subscription:', response?.error);
+      }
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+    }
+  }
+
+  function showUpgradePrompt() {
+    if (upgradePrompt) upgradePrompt.hidden = false;
+    if (reminderList) reminderList.hidden = true;
+    if (pagination) pagination.hidden = true;
+    if (reminderCount) reminderCount.textContent = '';
+    hideUpgradeError();
+  }
+
+  function hideUpgradePrompt() {
+    if (upgradePrompt) upgradePrompt.hidden = true;
+    hideUpgradeError();
+  }
+
+  function showUpgradeError(message) {
+    if (upgradeError) {
+      upgradeErrorMessage.textContent = message || chrome.i18n.getMessage('paymentProcessingError') || 'Payment error. Please try again.';
+      upgradeError.hidden = false;
+    }
+    if (upgradeButton) upgradeButton.hidden = true;
+  }
+
+  function hideUpgradeError() {
+    if (upgradeError) upgradeError.hidden = true;
+    if (upgradeButton) upgradeButton.hidden = false;
+  }
+
+  /**
+   * Checks if free user has hit reminder limit and shows upgrade prompt if needed
+   */
+  async function checkLimitAndShowUpgradePrompt() {
+    try {
+      const planData = await sendMessage({ type: MESSAGE_TYPES.GET_PLAN_STATUS });
+      
+      const FREE_LIMIT = 5;
+      const isPremium = planData.isPremium || planData.plan_type === 'premium';
+      const activeReminderCount = allReminders.filter(r => r.status === 'pending').length;
+
+      // Show account settings for premium users
+      if (isPremium) {
+        showPremiumBadge();
+        showAccountSettings();
+        await updateAccountSettingsDisplay(planData);
+        return true;
+      }
+
+      // Show upgrade prompt if free user has 5+ reminders
+      if (!isPremium && activeReminderCount >= FREE_LIMIT) {
+        hidePremiumBadge();
+        showUpgradePrompt();
+        hideAccountSettings();
+        return true;
+      }
+
+      // Free user with < 5 reminders - show normal list
+      hidePremiumBadge();
+      hideUpgradePrompt();
+      hideAccountSettings();
+      return false;
+    } catch (error) {
+      console.warn('Failed to check plan status:', error);
+      hideUpgradePrompt();
+      hideAccountSettings();
+      hidePremiumBadge();
+      return false;
+    }
+  }
+
+  // --- Upgrade Flow ---
+
+  /**
+   * Handles upgrade button click - initiates checkout flow
+   */
+  async function handleUpgradeClick() {
+    if (upgradeButton) upgradeButton.disabled = true;
+    hideUpgradeError();
+
+    try {
+      // Get user plan to confirm still need upgrade
+      const planData = await sendMessage({ type: MESSAGE_TYPES.GET_PLAN_STATUS });
+      if (planData.isPremium) {
+        // Already premium, reload page
+        location.reload();
+        return;
+      }
+
+      // Initiate checkout via background service
+      const response = await sendMessage({
+        type: 'INITIATE_CHECKOUT',
+        payload: { userId: 'current_user' } // Will be resolved in service worker
+      });
+
+      if (response && response.checkoutUrl) {
+        // Open checkout in new tab
+        chrome.tabs.create({ url: response.checkoutUrl });
+        // Listen for payment completion
+        setupPaymentListener();
+      } else {
+        showUpgradeError(chrome.i18n.getMessage('paymentInitiationError'));
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      showUpgradeError(error.message || chrome.i18n.getMessage('paymentInitiationError'));
+    } finally {
+      if (upgradeButton) upgradeButton.disabled = false;
+    }
+  }
+
+  /**
+   * Sets up listener for payment completion
+   */
+  function setupPaymentListener() {
+    // Listen for messages from payment processor or background script
+    const paymentListener = (message) => {
+      if (message.type === 'PAYMENT_COMPLETED' || message.type === MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED) {
+        // Payment successful, reload to show premium features
+        chrome.runtime.onMessage.removeListener(paymentListener);
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(paymentListener);
+
+    // Cleanup listener after 30 minutes (checkout should complete faster)
+    setTimeout(() => {
+      chrome.runtime.onMessage.removeListener(paymentListener);
+    }, 30 * 60 * 1000);
   }
 
   // --- Expose for testing ---

@@ -165,5 +165,213 @@
   "storageQuotaWarning": {
     "message": "Storage is almost full. Consider deleting old reminders.",
     "description": "Warning when storage usage exceeds 90%"
+  },
+  "premiumBadge": {
+    "message": "Premium",
+    "description": "Label for premium plan badge"
+  },
+  "upgradeToPremium": {
+    "message": "Upgrade to Premium",
+    "description": "Button label to upgrade to premium plan"
+  },
+  "upgradePromptTitle": {
+    "message": "Reminder limit reached",
+    "description": "Title of upgrade prompt when free user reaches limit"
+  },
+  "upgradePromptDescription": {
+    "message": "You've created $LIMIT$ reminders. Remove the limit and create unlimited reminders with Premium.",
+    "description": "Description of upgrade prompt",
+    "placeholders": {
+      "limit": { "content": "$1", "example": "5" }
+    }
+  },
+  "trialOfferText": {
+    "message": "14 days free, then $PRICE$/month. Cancel anytime.",
+    "description": "Trial offer text in upgrade prompt",
+    "placeholders": {
+      "price": { "content": "$1", "example": "$9.99" }
+    }
+  },
+  "billingInfo": {
+    "message": "First charge on day 15. Trial ends automatically if not cancelled.",
+    "description": "Billing information in upgrade prompt"
+  },
+  "accountSettings": {
+    "message": "Account Settings",
+    "description": "Section title for account settings"
+  },
+  "subscriptionStatus": {
+    "message": "Subscription",
+    "description": "Label for subscription status"
+  },
+  "nextRenewalDate": {
+    "message": "Renewal date: $DATE$",
+    "description": "Next renewal/billing date",
+    "placeholders": {
+      "date": { "content": "$1", "example": "Mar 27, 2026" }
+    }
+  },
+  "manageSubscription": {
+    "message": "Manage Subscription",
+    "description": "Button to access subscription management portal"
+  },
+  "subscriptionEnding": {
+    "message": "Your subscription ends on $DATE$. You'll return to the free plan.",
+    "description": "Message when subscription is in cancellation state",
+    "placeholders": {
+      "date": { "content": "$1", "example": "Mar 27, 2026" }
+    }
+  },
+  "planDowngradeNotice": {
+    "message": "After $DATE$, you'll have a limit of 5 active reminders.",
+    "description": "Notice about downgrade implications",
+    "placeholders": {
+      "date": { "content": "$1", "example": "Mar 27, 2026" }
+    }
+  },
+  "reactivateButton": {
+    "message": "Reactivate",
+    "description": "Button to reactivate a cancelled subscription"
+  },
+  "paymentFailedWarning": {
+    "message": "Payment failed. Please update your payment method.",
+    "description": "Warning when payment fails"
+  },
+  "gracePeriodWarning": {
+    "message": "Payment failed. Retrying: Day $DAY$ of $TOTAL_DAYS$",
+    "description": "Grace period countdown display",
+    "placeholders": {
+      "day": { "content": "$1", "example": "1" },
+      "totalDays": { "content": "$2", "example": "3" }
+    }
+  },
+  "updatePaymentMethod": {
+    "message": "Update Payment Method",
+    "description": "Link to update payment method in grace period warning"
+  },
+  "subscriptionDowngradedNotice": {
+    "message": "Your subscription expired. Your account has been downgraded to free (5 reminder limit).",
+    "description": "Notice after grace period ends and subscription is downgraded"
+  },
+  "billingHistory": {
+    "message": "Billing History",
+    "description": "Link to view billing history"
+  },
+  "upgradePromptTitle": {
+    "message": "Reach Premium",
+    "description": "Title for upgrade prompt shown when free user hits reminder limit"
+  },
+  "upgradePromptDescription": {
+    "message": "Remove the 5-reminder limit and create unlimited follow-ups",
+    "description": "Description for upgrade prompt"
+  },
+  "trialOfferText": {
+    "message": "14 days free",
+    "description": "Trial offer text in upgrade prompt"
+  },
+  "billingInfo": {
+    "message": "First charge on day 15. Cancel anytime.",
+    "description": "Billing information shown in upgrade prompt"
+  },
+  "upgradeButton": {
+    "message": "Upgrade Now",
+    "description": "Button label to initiate upgrade"
+  },
+  "tryAgainButton": {
+    "message": "Try Again",
+    "description": "Button label to retry payment after error"
+  },
+  "unpaidLimitError": {
+    "message": "You've reached your 5-reminder limit. Upgrade to premium to create unlimited reminders.",
+    "description": "Error message when free user tries to create more reminders"
+  },
+  "paymentInitiationError": {
+    "message": "Unable to start checkout. Please check your connection and try again.",
+    "description": "Error message when checkout initiation fails"
+  },
+  "paymentProcessingError": {
+    "message": "Payment processing error. Please try again.",
+    "description": "Generic payment processing error"
+  },
+  "premiumBadge": {
+    "message": "Premium",
+    "description": "Badge shown for premium users"
+  },
+  "accountSettings": {
+    "message": "Account Settings",
+    "description": "Account settings section in premium popup"
+  },
+  "subscriptionStatus": {
+    "message": "Subscription Status",
+    "description": "Label for subscription status"
+  },
+  "nextRenewalDate": {
+    "message": "Next renewal",
+    "description": "Label for next renewal date"
+  },
+  "manageSubscription": {
+    "message": "Manage Subscription",
+    "description": "Button to open subscription management portal"
+  },
+  "subscriptionUpgradedTitle": {
+    "message": "Welcome to Premium!",
+    "description": "Notification title when user upgrades"
+  },
+  "subscriptionUpgradedMessage": {
+    "message": "You now have unlimited reminders. Enjoy!",
+    "description": "Notification message when user upgrades"
+  },
+  "subscriptionRenewedTitle": {
+    "message": "Subscription Renewed",
+    "description": "Notification title when subscription renews"
+  },
+  "subscriptionRenewedMessage": {
+    "message": "Next billing: $DATE$",
+    "description": "Notification message when subscription renews",
+    "placeholders": {
+      "date": { "content": "$1", "example": "Mar 27, 2026" }
+    }
+  },
+  "subscriptionEndingTitle": {
+    "message": "Your subscription will end",
+    "description": "Title for cancellation warning"
+  },
+  "subscriptionEndingWarning": {
+    "message": "Your subscription will revert to Free in $DAYS$ days",
+    "description": "Warning message when subscription is cancelled",
+    "placeholders": {
+      "days": { "content": "$1", "example": "5" }
+    }
+  },
+  "reactivateButton": {
+    "message": "Reactivate",
+    "description": "Button to reactivate a cancelled subscription"
+  },
+  "subscriptionCancelledTitle": {
+    "message": "Subscription Cancelled",
+    "description": "Notification title when user cancels subscription"
+  },
+  "subscriptionCancelledMessage": {
+    "message": "Your premium access will end on $DATE$. You'll return to the free plan.",
+    "description": "Notification message when subscription is cancelled",
+    "placeholders": {
+      "date": { "content": "$1", "example": "Mar 27, 2026" }
+    }
+  },
+  "subscriptionDowngradedTitle": {
+    "message": "Plan Downgraded",
+    "description": "Notification title when user is downgraded to free plan"
+  },
+  "subscriptionDowngradedMessage": {
+    "message": "Your subscription has ended. You're now on the free plan (5 reminders limit).",
+    "description": "Notification message when subscription ends and user is downgraded"
+  },
+  "reactivateSuccessTitle": {
+    "message": "Subscription Reactivated",
+    "description": "Notification title when subscription is reactivated"
+  },
+  "reactivateSuccessMessage": {
+    "message": "Your subscription is active again. Enjoy unlimited reminders!",
+    "description": "Notification message when subscription is reactivated"
   }
 }

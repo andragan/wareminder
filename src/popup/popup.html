@@ -15,6 +15,7 @@
         <h1 class="popup-title">WAReminder</h1>
       </div>
       <div class="popup-header-right">
+        <span id="premium-badge" class="premium-badge" hidden data-i18n="premiumBadge">Premium</span>
         <span id="reminder-count" class="reminder-count"></span>
       </div>
     </header>
@@ -64,6 +65,61 @@
       <button id="prev-page" class="pagination-btn" disabled>← Prev</button>
       <span id="page-info" class="page-info"></span>
       <button id="next-page" class="pagination-btn">Next →</button>
+    </div>
+
+    <!-- Upgrade Prompt (shown when free user hits limit) -->
+    <div id="upgrade-prompt" class="upgrade-prompt" hidden>
+      <div class="upgrade-prompt-content">
+        <div class="upgrade-prompt-icon">⭐</div>
+        <h2 id="upgrade-prompt-title" class="upgrade-prompt-title" data-i18n="upgradePromptTitle">Reach Premium</h2>
+        <p id="upgrade-prompt-description" class="upgrade-prompt-description" data-i18n="upgradePromptDescription">Remove the 5-reminder limit and create unlimited follow-ups</p>
+        
+        <div class="upgrade-details">
+          <div class="upgrade-pricing">
+            <span class="upgrade-price" id="upgrade-price">$4.99</span>
+            <span class="upgrade-period">/month</span>
+          </div>
+          <div class="upgrade-offer">
+            <span class="upgrade-trial-badge" data-i18n="trialOfferText">14 days free</span>
+          </div>
+        </div>
+
+        <p class="upgrade-billing-info" data-i18n="billingInfo">First charge on day 15. Cancel anytime.</p>
+
+        <button id="upgrade-button" class="btn btn--primary upgrade-button" data-i18n="upgradeButton">Upgrade Now</button>
+
+        <div id="upgrade-error" class="upgrade-error" hidden>
+          <span id="upgrade-error-message" class="upgrade-error-message"></span>
+          <button id="upgrade-retry" class="btn btn--secondary upgrade-retry" data-i18n="tryAgainButton">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Settings (shows subscription details for premium users) -->
+    <div id="account-settings" class="account-settings" hidden>
+      <div class="account-settings-content">
+        <h2 id="account-settings-title" class="account-settings-title" data-i18n="accountSettings">Account Settings</h2>
+        
+        <div class="settings-section">
+          <label class="settings-label" data-i18n="subscriptionStatus">Subscription Status</label>
+          <p id="subscription-status-display" class="settings-value">Premium</p>
+        </div>
+
+        <div class="settings-section">
+          <label class="settings-label" data-i18n="nextRenewalDate">Next renewal</label>
+          <p id="next-renewal-display" class="settings-value">--</p>
+        </div>
+
+        <button id="manage-subscription-btn" class="btn btn--primary manage-subscription-button" data-i18n="manageSubscription">Manage Subscription</button>
+      </div>
+    </div>
+
+    <!-- Subscription Cancellation Warning -->
+    <div id="cancellation-warning" class="cancellation-warning" hidden>
+      <div class="warning-icon">⚠️</div>
+      <p class="warning-title" data-i18n="subscriptionEndingTitle">Your subscription will end</p>
+      <p class="warning-text" id="cancellation-text"></p>
+      <button id="reactivate-btn" class="btn btn--secondary" data-i18n="reactivateButton">Reactivate</button>
     </div>
 
     <!-- Delete Confirmation Dialog -->
