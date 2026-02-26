@@ -6,9 +6,9 @@
  * @module alarm-handler
  */
 
-import { ALARM_PREFIX } from '../lib/constants.js';
-import * as StorageService from '../services/storage-service.js';
-import { createReminderNotification } from './notification-handler.js';
+import { ALARM_PREFIX } from "../lib/constants.js";
+import * as StorageService from "../services/storage-service.js";
+import { createReminderNotification } from "./notification-handler.js";
 
 /**
  * Handles a fired Chrome alarm by looking up the corresponding reminder
@@ -17,17 +17,17 @@ import { createReminderNotification } from './notification-handler.js';
  * @returns {Promise<void>}
  */
 export async function handleAlarmFired(alarm) {
-  if (!alarm.name.startsWith(ALARM_PREFIX)) {
-    return; // Not a reminder alarm
-  }
+    if (!alarm.name.startsWith(ALARM_PREFIX)) {
+        return; // Not a reminder alarm
+    }
 
-  const reminderId = alarm.name.slice(ALARM_PREFIX.length);
-  const reminders = await StorageService.getReminders();
-  const reminder = reminders.find((r) => r.id === reminderId);
+    const reminderId = alarm.name.slice(ALARM_PREFIX.length);
+    const reminders = await StorageService.getReminders();
+    const reminder = reminders.find((r) => r.id === reminderId);
 
-  if (reminder && reminder.status === 'pending') {
-    await createReminderNotification(reminder);
-  }
+    if (reminder && reminder.status === "pending") {
+        await createReminderNotification(reminder);
+    }
 }
 
 /**

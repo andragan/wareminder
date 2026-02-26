@@ -35,7 +35,7 @@ describe('E2E: Badge Count Lifecycle', () => {
       }),
       getUserPlan: jest.fn().mockResolvedValue({
         planType: 'free',
-        activeReminderLimit: 5,
+        activeReminderLimit: 3,
       }),
     };
 
@@ -43,7 +43,7 @@ describe('E2E: Badge Count Lifecycle', () => {
       canCreateReminder: jest.fn().mockResolvedValue(true),
       getPlanStatus: jest.fn().mockResolvedValue({
         planType: 'free',
-        activeReminderLimit: 5,
+        activeReminderLimit: 3,
         currentPendingCount: 0,
         canCreateReminder: true,
       }),

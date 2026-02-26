@@ -5,7 +5,11 @@ module.exports = {
   testEnvironment: 'jest-environment-jsdom',
   setupFiles: ['./jest.setup.js'],
   testMatch: [
-    '<rootDir>/tests/**/*.test.js'
+    '<rootDir>/tests/**/*.test.js',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/tests/browser/',
   ],
   collectCoverageFrom: [
     'src/lib/**/*.js',

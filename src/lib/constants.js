@@ -8,7 +8,7 @@
 
 /** @readonly */
 const PLAN_LIMITS = Object.freeze({
-  FREE_ACTIVE_REMINDER_LIMIT: 5,
+  FREE_ACTIVE_REMINDER_LIMIT: 3,
   PAID_ACTIVE_REMINDER_LIMIT: -1, // -1 represents unlimited
 });
 

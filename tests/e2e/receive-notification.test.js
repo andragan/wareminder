@@ -33,7 +33,7 @@ describe('E2E: Receive Notification Lifecycle', () => {
       }),
       getUserPlan: jest.fn().mockResolvedValue({
         planType: 'free',
-        activeReminderLimit: 5,
+        activeReminderLimit: 3,
       }),
     };
 
@@ -41,7 +41,7 @@ describe('E2E: Receive Notification Lifecycle', () => {
       canCreateReminder: jest.fn().mockResolvedValue(true),
       getPlanStatus: jest.fn().mockResolvedValue({
         planType: 'free',
-        activeReminderLimit: 5,
+        activeReminderLimit: 3,
         currentPendingCount: 0,
         canCreateReminder: true,
       }),
