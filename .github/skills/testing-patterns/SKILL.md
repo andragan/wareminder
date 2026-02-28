@@ -43,6 +43,17 @@ const mockStorage = {
   saveReminders: jest.fn((reminders) => Promise.resolve()),
 };
 
+// For ReminderService: use AccountService (not PlanService)
+// ReminderService uses AccountService.enforceReminderLimit() internally
+const mockAccount = {
+  enforceReminderLimit: jest.fn(async (userId, count) => ({
+    allowed: true,
+    limit: 5,
+  })),
+  getUserPlan: jest.fn(async () => 'free'),
+  getReminderLimit: jest.fn(async () => 5),
+};
+
 // Pass mocks as deps
 const result = await ReminderService.createReminder(payload, {
   storage: mockStorage,
