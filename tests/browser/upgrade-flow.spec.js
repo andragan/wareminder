@@ -132,9 +132,39 @@ test.describe("User Story 1: Upgrade Flow - Discover and Complete Upgrade", () =
         await refreshPopup(page);
 
         await expect(page.locator("#upgrade-prompt")).toBeVisible();
-        await expect(page.locator("#reminder-list")).toBeHidden();
+        await expect(page.locator("#reminder-list")).toBeVisible();
         await expect(page.locator("#upgrade-button")).toBeVisible();
         await expect(page.locator("#upgrade-error")).toBeHidden();
+    });
+
+    test("allows dismissing upgrade prompt to view reminders", async ({
+        page,
+    }) => {
+        const reminders = Array.from({ length: 5 }, (_, i) => ({
+            id: `r${i}`,
+            chatId: `1111111111-${i}@c.us`,
+            chatName: `Contact ${i}`,
+            scheduledTime: Date.now() + (i + 1) * 60 * 60 * 1000,
+            status: "pending",
+        }));
+
+        await setMockState(page, {
+            reminders,
+            planStatus: { isPremium: false, plan_type: "free" },
+        });
+        await refreshPopup(page);
+
+        // Upgrade prompt should be visible
+        await expect(page.locator("#upgrade-prompt")).toBeVisible();
+
+        // Click dismiss button
+        await page.locator("#dismiss-upgrade-prompt").click();
+
+        // Upgrade prompt should be hidden
+        await expect(page.locator("#upgrade-prompt")).toBeHidden();
+
+        // Reminder list should still be visible
+        await expect(page.locator("#reminder-list")).toBeVisible();
     });
 
     test("hides upgrade prompt for premium user and shows account settings", async ({

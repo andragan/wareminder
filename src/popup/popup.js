@@ -48,6 +48,7 @@
     const deleteCancelBtn = document.getElementById("delete-cancel");
     const deleteConfirmBtn = document.getElementById("delete-confirm");
     const upgradePrompt = document.getElementById("upgrade-prompt");
+    const dismissUpgradePromptBtn = document.getElementById("dismiss-upgrade-prompt");
     const upgradeButton = document.getElementById("upgrade-button");
     const upgradeRetry = document.getElementById("upgrade-retry");
     const upgradeError = document.getElementById("upgrade-error");
@@ -71,6 +72,7 @@
     let allReminders = [];
     let currentPage = 1;
     let pendingDeleteId = null;
+    let upgradePromptDismissed = false;
 
     // --- Init ---
     document.addEventListener("DOMContentLoaded", init);
@@ -126,6 +128,11 @@
             );
         if (reactivateBtn)
             reactivateBtn.addEventListener("click", handleReactivate);
+        if (dismissUpgradePromptBtn)
+            dismissUpgradePromptBtn.addEventListener(
+                "click",
+                dismissUpgradePrompt,
+            );
     }
 
     /**
@@ -729,15 +736,21 @@
 
     function showUpgradePrompt() {
         if (upgradePrompt) upgradePrompt.hidden = false;
-        if (reminderList) reminderList.hidden = true;
-        if (pagination) pagination.hidden = true;
-        if (reminderCount) reminderCount.textContent = "";
+        upgradePromptDismissed = false;
         hideUpgradeError();
     }
 
     function hideUpgradePrompt() {
         if (upgradePrompt) upgradePrompt.hidden = true;
         hideUpgradeError();
+    }
+
+    function dismissUpgradePrompt() {
+        upgradePromptDismissed = true;
+        hideUpgradePrompt();
+        // Show the reminder list since user dismissed the prompt
+        if (reminderList) reminderList.hidden = false;
+        if (pagination) pagination.hidden = false;
     }
 
     function showUpgradeError(message) {
@@ -777,14 +790,24 @@
                 showPremiumBadge();
                 showAccountSettings();
                 await updateAccountSettingsDisplay(planData);
+                hideUpgradePrompt();
                 return true;
             }
 
-            // Show upgrade prompt if free user has 5+ reminders
+            // Show upgrade prompt if free user has 5+ reminders (unless dismissed)
             if (!isPremium && activeReminderCount >= FREE_LIMIT) {
                 hidePremiumBadge();
-                showUpgradePrompt();
                 hideAccountSettings();
+                if (!upgradePromptDismissed) {
+                    showUpgradePrompt();
+                    // Still show the reminder list behind the overlay
+                    if (reminderList) reminderList.hidden = false;
+                    if (pagination) pagination.hidden = false;
+                } else {
+                    hideUpgradePrompt();
+                    if (reminderList) reminderList.hidden = false;
+                    if (pagination) pagination.hidden = false;
+                }
                 return true;
             }
 
@@ -792,6 +815,8 @@
             hidePremiumBadge();
             hideUpgradePrompt();
             hideAccountSettings();
+            if (reminderList) reminderList.hidden = false;
+            if (pagination) pagination.hidden = false;
             return false;
         } catch (error) {
             console.warn("Failed to check plan status:", error);
