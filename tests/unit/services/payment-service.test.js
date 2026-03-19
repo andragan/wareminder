@@ -103,11 +103,13 @@ describe('payment-service', () => {
       const mockTrialEndDate = '2026-03-13T00:00:00Z';
 
       global.fetch = jest.fn(() =>
-        Promise.resolve({
-          ok: true.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ trial_end_date: mockTrialEndDate }),
-      })onst result = await paymentService.handleCheckoutSuccess('user-123', 'session-123');
+          Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ trial_end_date: mockTrialEndDate }),
+          })
+        );
+
+        const result = await paymentService.handleCheckoutSuccess('user-123', 'session-123');
 
       expect(result).toBe(true);
       // @ts-ignore

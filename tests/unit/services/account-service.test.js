@@ -40,9 +40,9 @@ describe('account-service', () => {
   describe('getUserPlan', () => {
     it('should return free plan by default', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({});
-      });
+       chrome.storage.local.get.mockImplementationOnce(() =>
+         Promise.resolve({})
+       );
 
       const plan = await accountService.getUserPlan('user-123');
       expect(plan).toBe(SUBSCRIPTION_PLANS.FREE);
@@ -50,13 +50,13 @@ describe('account-service', () => {
 
     it('should return premium plan when cached', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-          },
-        });
-      });
+       chrome.storage.local.get.mockImplementationOnce(() =>
+         Promise.resolve({
+           subscriptionStatus: {
+             plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+           },
+         })
+       );
 
       const plan = await accountService.getUserPlan('user-123');
       expect(plan).toBe(SUBSCRIPTION_PLANS.PREMIUM);
@@ -66,13 +66,13 @@ describe('account-service', () => {
   describe('isPremium', () => {
     it('should return true for premium plan', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+            },
+          })
+        );
 
       const isPremium = await accountService.isPremium('user-123');
       expect(isPremium).toBe(true);
@@ -80,13 +80,13 @@ describe('account-service', () => {
 
     it('should return false for free plan', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const isPremium = await accountService.isPremium('user-123');
       expect(isPremium).toBe(false);
@@ -96,13 +96,13 @@ describe('account-service', () => {
   describe('getReminderLimit', () => {
     it('should return 5 reminders for free plan', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const limit = await accountService.getReminderLimit('user-123');
       expect(limit).toBe(PLAN_LIMITS.FREE_ACTIVE_REMINDER_LIMIT);
@@ -111,13 +111,13 @@ describe('account-service', () => {
 
     it('should return unlimited (-1) for premium plan', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+            },
+          })
+        );
 
       const limit = await accountService.getReminderLimit('user-123');
       expect(limit).toBe(PLAN_LIMITS.PAID_ACTIVE_REMINDER_LIMIT);
@@ -128,13 +128,13 @@ describe('account-service', () => {
   describe('canCreateReminder', () => {
     it('should allow creation for free user under limit', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const canCreate = await accountService.canCreateReminder('user-123', 3);
       expect(canCreate).toBe(true);
@@ -142,13 +142,13 @@ describe('account-service', () => {
 
     it('should deny creation for free user at limit', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const canCreate = await accountService.canCreateReminder('user-123', 5);
       expect(canCreate).toBe(false);
@@ -156,13 +156,13 @@ describe('account-service', () => {
 
     it('should allow unlimited creation for premium user', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+            },
+          })
+        );
 
       const canCreate = await accountService.canCreateReminder('user-123', 1000);
       expect(canCreate).toBe(true);
@@ -172,13 +172,13 @@ describe('account-service', () => {
   describe('enforceReminderLimit', () => {
     it('should return allowed for free user under limit', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const result = await accountService.enforceReminderLimit('user-123', 3);
       expect(result.allowed).toBe(true);
@@ -188,13 +188,13 @@ describe('account-service', () => {
 
     it('should return error for free user at limit', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.FREE,
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.FREE,
+            },
+          })
+        );
 
       const result = await accountService.enforceReminderLimit('user-123', 5);
       expect(result.allowed).toBe(false);
@@ -205,13 +205,13 @@ describe('account-service', () => {
 
     it('should return allowed for premium user', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-          },
-        });
-      });
+          chrome.storage.local.get.mockImplementation(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+            },
+          })
+        );
 
       const result = await accountService.enforceReminderLimit('user-123', 50);
       expect(result.allowed).toBe(true);
@@ -221,9 +221,9 @@ describe('account-service', () => {
   describe('getCachedSubscription', () => {
     it('should return default free plan when no cache', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({});
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({})
+        );
 
       const subscription = await accountService.getCachedSubscription();
       expect(subscription.plan_type).toBe(SUBSCRIPTION_PLANS.FREE);
@@ -232,15 +232,15 @@ describe('account-service', () => {
 
     it('should return cached subscription data', async () => {
       // @ts-ignore
-      chrome.storage.local.get.mockImplementationOnce((keys, cb) => {
-        cb({
-          subscriptionStatus: {
-            plan_type: SUBSCRIPTION_PLANS.PREMIUM,
-            status: 'trial',
-            trial_end_date: '2026-03-13T00:00:00Z',
-          },
-        });
-      });
+        chrome.storage.local.get.mockImplementationOnce(() =>
+          Promise.resolve({
+            subscriptionStatus: {
+              plan_type: SUBSCRIPTION_PLANS.PREMIUM,
+              status: 'trial',
+              trial_end_date: '2026-03-13T00:00:00Z',
+            },
+          })
+        );
 
       const subscription = await accountService.getCachedSubscription();
       expect(subscription.plan_type).toBe(SUBSCRIPTION_PLANS.PREMIUM);

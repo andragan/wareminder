@@ -23,7 +23,7 @@ import * as AccountService from './account-service.js';
 async function createReminder(payload, deps) {
   const storage = (deps && deps.storage) || StorageService;
   const account = (deps && deps.account) || AccountService;
-  const userId = (deps && deps.userId) || null;
+  const userId = (deps && deps.userId) || 'anonymous';
 
   // Validate the payload
   const validation = validateCreateReminderPayload(payload);
@@ -41,7 +41,6 @@ async function createReminder(payload, deps) {
   const {
     allowed,
     error: limitError,
-    limit,
   } = await account.enforceReminderLimit(userId, pendingCount);
 
   if (!allowed) {
@@ -72,7 +71,6 @@ async function createReminder(payload, deps) {
   };
 
   // Save to storage
-  const reminders = await storage.getReminders();
   reminders.push(reminder);
   await storage.saveReminders(reminders);
 
@@ -139,13 +137,20 @@ async function deleteReminder(reminderId, deps) {
 
   reminders.splice(index, 1);
   await storage.saveReminders(reminders);
-  await chromuserId?: string, storage?: typeof StorageService, account?: typeof AccountService }} [deps]
+  await chrome.alarms.clear(`${ALARM_PREFIX}${reminderId}`);
+
+  return reminderId;
+}
+
+/**
+ * Gets all reminders with plan information.
+ * @param {{ userId?: string, storage?: typeof StorageService, account?: typeof AccountService }} [deps]
  * @returns {Promise<{ reminders: Array<object>, pendingCount: number, planLimit: number, planType: string }>}
  */
 async function getAllReminders(deps) {
   const storage = (deps && deps.storage) || StorageService;
   const account = (deps && deps.account) || AccountService;
-  const userId = (deps && deps.userId) || null;
+  const userId = (deps && deps.userId) || 'anonymous';
 
   const reminders = await storage.getReminders();
 
@@ -163,14 +168,7 @@ async function getAllReminders(deps) {
     reminders,
     pendingCount,
     planLimit,
-    e ascending (soonest first)
-  reminders.sort((a, b) => a.scheduledTime - b.scheduledTime);
-
-  return {
-    reminders,
-    pendingCount: planStatus.currentPendingCount,
-    planLimit: planStatus.activeReminderLimit,
-    planType: planStatus.planType,
+    planType,
   };
 }
 

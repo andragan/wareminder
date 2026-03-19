@@ -1,31 +1,31 @@
 // @ts-check
 /**
  * Payment Service
- * Manages Xendit integration: invoice initiation, invoice payment handling
+ * Manages Stripe integration: checkout session creation, customer portal access
  * @module payment-service
  */
 
 /**
- * Initiate Xendit invoice for premium upgrade
- * Opens Xendit invoice URL in new tab/window
+ * Initiate Stripe checkout session for premium upgrade
+ * Opens Stripe checkout URL in new tab/window
  * @param {string} userId - User ID
- * @returns {Promise<string|null>} Invoice URL or null on error
+ * @returns {Promise<string|null>} Checkout session URL or null on error
  */
 export async function initiateCheckout(userId) {
   try {
     if (!userId) {
-      throw new Error('User ID required to initiate invoice');
+      throw new Error('User ID required to initiate checkout');
     }
 
     // Get auth token
     const token = await getAuthToken();
     if (!token) {
-      throw new Error('Authentication required for invoice creation');
+      throw new Error('Authentication required for checkout');
     }
 
-    // Call backend to create Xendit invoice
+    // Call backend to create Stripe checkout session
     const response = await fetch(
-      `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/create-xendit-invoice`,
+      `${process.env.SUPABASE_URL}/functions/v1/create-checkout-session`,
       {
         method: 'POST',
         headers: {
@@ -37,47 +37,76 @@ export async function initiateCheckout(userId) {
     );
 
     if (!response.ok) {
-      throw new Error(`Invoice creation failed: ${response.status}`);
+      throw new Error(`Checkout session creation failed: ${response.status}`);
     }
 
-    const { invoiceUrl } = await response.json();
-    if (!invoiceUrl) {
-      throw new Error('No invoice URL returned from server');
+    const { sessionUrl } = await response.json();
+    if (!sessionUrl) {
+      throw new Error('No session URL returned from server');
     }
 
-    // Open invoice in new tab
-    chrome.tabs.create({ url: invoiceUrl });
+    // Open checkout in new tab
+    chrome.tabs.create({ url: sessionUrl });
 
-    // Listen for invoice payment completion
-    setupInvoiceListener(userId);
+    // Listen for checkout completion
+    setupCheckoutListener(userId);
 
-    return invoiceUrl;
+    return sessionUrl;
   } catch (error) {
-    console.error('Error initiating invoice:', error);
+    console.error('Error initiating checkout:', error);
     return null;
   }
 }
 
 /**
- * Redirect user to Xendit support or invoice management
- * Opens invoice history or account page in new tab
+ * Redirect user to Stripe customer portal
+ * Opens billing and subscription management in new tab
  * @param {string} userId - User ID
  * @returns {Promise<boolean>} True if portal opened successfully
  */
 export async function redirectToCustomerPortal(userId) {
   try {
     if (!userId) {
-      throw new Error('User ID required to access account');
+      throw new Error('User ID required to access portal');
     }
 
-    // Xendit doesn't have a direct customer portal like Stripe
-    // For now, open Xendit support or account page
-    const xenditAccountUrl = 'https://xendit.com/account';
-    
-    chrome.tabs.create({ url: xenditAccountUrl });
+    // Get auth token
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    // Call backend to create portal session
+    const response = await fetch(
+      `${process.env.SUPABASE_URL}/functions/v1/create-portal-session`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Portal session creation failed: ${response.status}`);
+    }
+
+    const { portalUrl } = await response.json();
+    if (!portalUrl) {
+      throw new Error('No portal URL returned from server');
+    }
+
+    // Open portal in new tab
+    chrome.tabs.create({ url: portalUrl });
 
     return true;
   } catch (error) {
+    console.error('Error accessing customer portal:', error);
+    return false;
+  }
+}
     console.error('Error accessing account:', error);
     return false;
   }
@@ -152,5 +181,5 @@ async function getAuthToken() {
  * @returns {boolean} True if Xendit is configured
  */
 export function isStripeConfigured() {
-  return !!process.env.REACT_APP_SUPABASE_URL;
+  return !!process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 }

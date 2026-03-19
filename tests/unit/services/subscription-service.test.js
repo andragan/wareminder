@@ -1,4 +1,3 @@
-// @ts-check
 /**
  * Unit tests for subscription-service
  * Tests CRUD operations, state machine logic, grace period handling

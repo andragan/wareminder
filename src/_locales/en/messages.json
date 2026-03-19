@@ -238,7 +238,7 @@
     "description": "Warning when payment fails"
   },
   "gracePeriodWarning": {
-    "message": "Payment failed. Retrying: Day $DAY$ of $TOTAL_DAYS$",
+    "message": "Payment failed. Retrying: Day $DAY$ of $TOTALDAYS$",
     "description": "Grace period countdown display",
     "placeholders": {
       "day": { "content": "$1", "example": "1" },
