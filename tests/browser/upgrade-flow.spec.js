@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
-const { setupChromeMock } = require("./helpers/chrome-mock-setup");
+const { setupChromeMock, setupChromeMockStateful } = require("./helpers/chrome-mock-setup");
 
 const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
 
@@ -8,6 +8,12 @@ test.describe("Upgrade Flow - End to End", () => {
     test.beforeEach(async ({ page }) => {
         // Set viewport to match popup width (400px from popup.html meta viewport)
         await page.setViewportSize({ width: 400, height: 800 });
+
+        // Setup Chrome API mock with default free plan (5 reminders)
+        await setupChromeMock(page, {
+            prefix: "[FLOW]",
+            reminderCount: 5,
+        });
     });
 
     test("user clicks upgrade button and completes checkout flow", async ({
@@ -32,12 +38,6 @@ test.describe("Upgrade Flow - End to End", () => {
             if (text.includes("[FLOW]") || text.includes("[ERROR]") || text.includes("[TEST-DEBUG]") || text.includes("[CHROME-MOCK]")) {
                 console.log(text);
             }
-        });
-
-        // Setup Chrome API mock with default free plan (5 reminders)
-        await setupChromeMock(page, {
-            prefix: "[FLOW]",
-            reminderCount: 5,
         });
 
         console.log("\n=== STEP 1: Load Popup ===");
@@ -259,97 +259,8 @@ test.describe("User Story 1: Upgrade Flow - Discover and Complete Upgrade", () =
         // Set viewport to match popup width (400px from popup.html meta viewport)
         await page.setViewportSize({ width: 400, height: 800 });
 
-        await page.addInitScript(() => {
-            const state = {
-                reminders: [],
-                planStatus: { isPremium: false, plan_type: "free" },
-                checkoutResponse: {
-                    success: true,
-                    data: { checkoutUrl: "https://checkout.example.com/test" },
-                },
-                checkoutError: null,
-            };
-
-            window.__mockState = state;
-            window.__tabsCreated = [];
-
-            window.chrome = {
-                runtime: {
-                    lastError: null,
-                    sendMessage: (message, callback) => {
-                        const current = window.__mockState;
-
-                        if (message.type === "GET_REMINDERS") {
-                            callback({
-                                success: true,
-                                data: { reminders: current.reminders },
-                            });
-                            return;
-                        }
-
-                        if (message.type === "GET_PLAN_STATUS") {
-                            callback({
-                                success: true,
-                                data: current.planStatus,
-                            });
-                            return;
-                        }
-
-                        if (message.type === "CHECK_NOTIFICATION_PERMISSION") {
-                            callback({
-                                success: true,
-                                data: { permissionLevel: "granted" },
-                            });
-                            return;
-                        }
-
-                        if (message.type === "GET_CANCELLATION_STATUS") {
-                            callback({
-                                success: true,
-                                data: { isCancelled: false },
-                            });
-                            return;
-                        }
-
-                        if (message.type === "INITIATE_CHECKOUT") {
-                            if (current.checkoutError) {
-                                callback({
-                                    success: false,
-                                    error: current.checkoutError,
-                                });
-                                return;
-                            }
-                            callback(current.checkoutResponse);
-                            return;
-                        }
-
-                        callback({
-                            success: false,
-                            error: `Unknown message type: ${message.type}`,
-                        });
-                    },
-                    onMessage: {
-                        addListener: () => {},
-                        removeListener: () => {},
-                    },
-                    openOptionsPage: () => Promise.resolve(),
-                },
-                tabs: {
-                    create: (payload) => {
-                        window.__tabsCreated.push(payload);
-                        return Promise.resolve();
-                    },
-                },
-                storage: {
-                    onChanged: {
-                        addListener: () => {},
-                    },
-                },
-                i18n: {
-                    getMessage: (key) => key,
-                },
-            };
-        });
+        // Setup stateful Chrome API mock that allows tests to modify state
+        await setupChromeMockStateful(page);
 
         await page.goto(popupUrl);
         // Wait for popup to initialize and load

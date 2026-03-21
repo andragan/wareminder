@@ -209,4 +209,103 @@ async function setupChromeMock(
     );
 }
 
-module.exports = { setupChromeMock };
+/**
+ * Setup stateful Chrome API mock for Playwright page
+ * Allows tests to dynamically modify mock state via setMockState()
+ * @param {Object} page - Playwright page object
+ */
+async function setupChromeMockStateful(page) {
+    await page.addInitScript(() => {
+        const state = {
+            reminders: [],
+            planStatus: { isPremium: false, plan_type: "free" },
+            checkoutResponse: {
+                success: true,
+                data: { checkoutUrl: "https://checkout.example.com/test" },
+            },
+            checkoutError: null,
+        };
+
+        window.__mockState = state;
+        window.__tabsCreated = [];
+
+        window.chrome = {
+            runtime: {
+                lastError: null,
+                sendMessage: (message, callback) => {
+                    const current = window.__mockState;
+
+                    if (message.type === "GET_REMINDERS") {
+                        callback({
+                            success: true,
+                            data: { reminders: current.reminders },
+                        });
+                        return;
+                    }
+
+                    if (message.type === "GET_PLAN_STATUS") {
+                        callback({
+                            success: true,
+                            data: current.planStatus,
+                        });
+                        return;
+                    }
+
+                    if (message.type === "CHECK_NOTIFICATION_PERMISSION") {
+                        callback({
+                            success: true,
+                            data: { permissionLevel: "granted" },
+                        });
+                        return;
+                    }
+
+                    if (message.type === "GET_CANCELLATION_STATUS") {
+                        callback({
+                            success: true,
+                            data: { isCancelled: false },
+                        });
+                        return;
+                    }
+
+                    if (message.type === "INITIATE_CHECKOUT") {
+                        if (current.checkoutError) {
+                            callback({
+                                success: false,
+                                error: current.checkoutError,
+                            });
+                            return;
+                        }
+                        callback(current.checkoutResponse);
+                        return;
+                    }
+
+                    callback({
+                        success: false,
+                        error: `Unknown message type: ${message.type}`,
+                    });
+                },
+                onMessage: {
+                    addListener: () => {},
+                    removeListener: () => {},
+                },
+                openOptionsPage: () => Promise.resolve(),
+            },
+            tabs: {
+                create: (payload) => {
+                    window.__tabsCreated.push(payload);
+                    return Promise.resolve();
+                },
+            },
+            storage: {
+                onChanged: {
+                    addListener: () => {},
+                },
+            },
+            i18n: {
+                getMessage: (key) => key,
+            },
+        };
+    });
+}
+
+module.exports = { setupChromeMock, setupChromeMockStateful };
