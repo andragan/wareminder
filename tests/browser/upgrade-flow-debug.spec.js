@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
+const { setupChromeMock } = require("./helpers/chrome-mock-setup");
 
 const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
 
@@ -7,137 +8,31 @@ test.describe("Upgrade Flow - INITIATE_CHECKOUT Message", () => {
     test("should send properly formatted INITIATE_CHECKOUT message and open checkout URL", async ({
         page,
     }) => {
-        // Track messages and state
-        let sentMessages = [];
-        let checkoutUrlOpened = null;
+        // Setup Chrome API mock with default free plan (5 reminders)
+        await setupChromeMock(page, {
+            prefix: "[TEST]",
+            reminderCount: 5,
+            checkoutUrl: "https://checkout.xendit.com/test-session-123",
+        });
 
+        // Add script to wrap sendMessage and capture messages for testing
         await page.addInitScript(() => {
             window.__testState = {
                 sentMessages: [],
                 tabsCreated: [],
             };
-
-            // Mock chrome API BEFORE popup.js loads
-            window.chrome = {
-                runtime: {
-                    lastError: null,
-                    sendMessage: (message, callback) => {
-                        // Capture the message for verification
-                        window.__testState.sentMessages.push({
-                            timestamp: Date.now(),
-                            message: JSON.parse(JSON.stringify(message)),
-                        });
-
-                        console.log(
-                            "[TEST] sendMessage called:",
-                            JSON.stringify(message)
-                        );
-
-                        // Route the message based on type
-                        const type = message.type;
-
-                        if (type === "GET_REMINDERS") {
-                            // Return 5 reminders (triggers upgrade prompt for free user)
-                            callback({
-                                success: true,
-                                data: {
-                                    reminders: Array.from(
-                                        { length: 5 },
-                                        (_, i) => ({
-                                            id: `r${i}`,
-                                            chatId: `1111111111-${i}@c.us`,
-                                            chatName: `Contact ${i}`,
-                                            scheduledTime:
-                                                Date.now() +
-                                                (i + 1) * 60 * 60 * 1000,
-                                            status: "pending",
-                                        })
-                                    ),
-                                },
-                            });
-                        } else if (type === "GET_PLAN_STATUS") {
-                            callback({
-                                success: true,
-                                data: {
-                                    isPremium: false,
-                                    plan_type: "free",
-                                },
-                            });
-                        } else if (
-                            type === "CHECK_NOTIFICATION_PERMISSION"
-                        ) {
-                            callback({
-                                success: true,
-                                data: { permissionLevel: "granted" },
-                            });
-                        } else if (type === "GET_CANCELLATION_STATUS") {
-                            callback({
-                                success: true,
-                                data: { isCancelled: false },
-                            });
-                        } else if (type === "INITIATE_CHECKOUT") {
-                            // This is the critical test—verify the message format
-                            console.log(
-                                "[TEST] CHECKOUT MESSAGE RECEIVED:",
-                                JSON.stringify(message)
-                            );
-
-                            // Verify the message has required structure
-                            if (!message.type || !message.payload) {
-                                console.error(
-                                    "[TEST] INVALID MESSAGE FORMAT:",
-                                    message
-                                );
-                                callback({
-                                    success: false,
-                                    error: "Invalid message format",
-                                });
-                                return;
-                            }
-
-                            // Success response with checkout URL
-                            console.log(
-                                "[TEST] Responding with checkout URL"
-                            );
-                            callback({
-                                success: true,
-                                data: {
-                                    checkoutUrl:
-                                        "https://checkout.xendit.com/test-session-123",
-                                },
-                            });
-                        } else {
-                            console.warn("[TEST] Unknown message type:", type);
-                            callback({
-                                success: false,
-                                error: `Unknown message type: ${type}`,
-                            });
-                        }
-                    },
-                    onMessage: {
-                        addListener: () => {},
-                        removeListener: () => {},
-                    },
-                    openOptionsPage: () => Promise.resolve(),
-                },
-                tabs: {
-                    create: (config) => {
-                        console.log(
-                            "[TEST] Tab created with URL:",
-                            config.url
-                        );
-                        window.__testState.tabsCreated.push(config);
-                        return Promise.resolve({ id: 999 });
-                    },
-                },
-                storage: {
-                    onChanged: {
-                        addListener: () => {},
-                    },
-                },
-                i18n: {
-                    getMessage: (key) => key,
-                },
+            const originalSendMessage = window.chrome.runtime.sendMessage;
+            window.chrome.runtime.sendMessage = (message, callback) => {
+                window.__testState.sentMessages.push({
+                    timestamp: Date.now(),
+                    message: JSON.parse(JSON.stringify(message)),
+                });
+                return originalSendMessage(message, callback);
+            };
+            const originalTabsCreate = window.chrome.tabs.create;
+            window.chrome.tabs.create = (config) => {
+                window.__testState.tabsCreated.push(config);
+                return originalTabsCreate(config);
             };
         });
 

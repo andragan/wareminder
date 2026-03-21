@@ -5,8 +5,10 @@ node_modules/
 dist/
 build/
 
-# Coverage
+# Coverage & Test Results
 coverage/
+test-results/
+playwright-report/
 
 # Environment
 .env*

@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
+const { setupChromeMock } = require("./helpers/chrome-mock-setup");
 
 const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
 
@@ -28,151 +29,15 @@ test.describe("Upgrade Flow - End to End", () => {
 
         page.on("console", (msg) => {
             const text = msg.text();
-            if (text.includes("[FLOW]") || text.includes("[ERROR]") || text.includes("[TEST-DEBUG]") || text.includes("[FLOW-INIT]")) {
+            if (text.includes("[FLOW]") || text.includes("[ERROR]") || text.includes("[TEST-DEBUG]") || text.includes("[CHROME-MOCK]")) {
                 console.log(text);
             }
         });
 
-        // Mock Chrome API
-        await page.addInitScript(() => {
-            window.__flowState = {
-                messagesReceived: [],
-                checkoutUrlOpened: null,
-                tabsCreated: [],
-            };
-            console.log("[FLOW-INIT] Setting up Chrome mock...");
-            window.chrome = {
-                runtime: {
-                    lastError: null,
-                    sendMessage: (message, callback) => {
-                        console.log(
-                            "[FLOW] Message received:",
-                            message.type
-                        );
-                        window.__flowState.messagesReceived.push(message);
-
-                        const type = message.type;
-
-                        // Handle each message type
-                        if (type === "GET_REMINDERS") {
-                            console.log("[FLOW] Responding with 5 reminders");
-                            callback({
-                                success: true,
-                                data: {
-                                    reminders: Array.from(
-                                        { length: 5 },
-                                        (_, i) => ({
-                                            id: `reminder-${i}`,
-                                            chatId: `111111-${i}@c.us`,
-                                            chatName: `Chat ${i}`,
-                                            scheduledTime:
-                                                Date.now() +
-                                                (i + 1) * 60 * 60 * 1000,
-                                            status: "pending",
-                                        })
-                                    ),
-                                },
-                            });
-                        } else if (type === "GET_PLAN_STATUS") {
-                            console.log(
-                                "[FLOW] Responding with free plan status"
-                            );
-                            callback({
-                                success: true,
-                                data: {
-                                    isPremium: false,
-                                    plan_type: "free",
-                                },
-                            });
-                        } else if (
-                            type === "CHECK_NOTIFICATION_PERMISSION"
-                        ) {
-                            callback({
-                                success: true,
-                                data: { permissionLevel: "granted" },
-                            });
-                        } else if (type === "GET_CANCELLATION_STATUS") {
-                            callback({
-                                success: true,
-                                data: { isCancelled: false },
-                            });
-                        } else if (type === "GET_SUBSCRIPTION_DETAILS") {
-                            callback({
-                                success: true,
-                                data: { planType: "free" },
-                            });
-                        } else if (type === "INITIATE_CHECKOUT") {
-                            console.log(
-                                "[FLOW] CRITICAL: checkout message received"
-                            );
-
-                            // Validate message format
-                            if (
-                                !message ||
-                                !message.type ||
-                                !message.payload
-                            ) {
-                                console.error(
-                                    "[ERROR] Invalid message format:",
-                                    message
-                                );
-                                callback({
-                                    success: false,
-                                    error: "Invalid message format",
-                                });
-                                return;
-                            }
-
-                            console.log(
-                                "[FLOW] Message format valid, returning checkout URL"
-                            );
-                            window.__flowState.checkoutUrlOpened =
-                                "https://xendit.co/checkout/session-123";
-
-                            callback({
-                                success: true,
-                                data: {
-                                    checkoutUrl:
-                                        window.__flowState.checkoutUrlOpened,
-                                },
-                            });
-                        } else {
-                            console.warn(
-                                "[FLOW] Unknown message type:",
-                                type
-                            );
-                            callback({
-                                success: false,
-                                error: `Unknown message type: ${type}`,
-                            });
-                        }
-                    },
-                    onMessage: {
-                        addListener: () => {},
-                        removeListener: () => {},
-                    },
-                    openOptionsPage: () => Promise.resolve(),
-                },
-                tabs: {
-                    create: (config) => {
-                        console.log("[FLOW] Opening tab with URL:", config.url);
-                        window.__flowState.tabsCreated.push(config);
-                        return Promise.resolve({ id: 99 });
-                    },
-                },
-                storage: {
-                    local: {
-                        get: () => Promise.resolve({}),
-                        set: () => Promise.resolve(),
-                    },
-                    onChanged: {
-                        addListener: () => {},
-                    },
-                },
-                i18n: {
-                    getMessage: (key) => key,
-                },
-            };
+        // Setup Chrome API mock with default free plan (5 reminders)
+        await setupChromeMock(page, {
+            prefix: "[FLOW]",
+            reminderCount: 5,
         });
 
         console.log("\n=== STEP 1: Load Popup ===");
