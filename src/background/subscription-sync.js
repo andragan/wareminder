@@ -9,7 +9,7 @@
  */
 
 import { SUBSCRIPTION_CONSTANTS, MESSAGE_TYPES } from '../lib/constants.js';
-import * as accountService from './account-service.js';
+import * as accountService from '../services/account-service.js';
 
 const SYNC_INTERVAL_MS = SUBSCRIPTION_CONSTANTS.SYNC_INTERVAL_HOURS * 60 * 60 * 1000; // 24 hours
 const SYNC_ALARM_NAME = 'subscription-sync';

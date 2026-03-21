@@ -1,0 +1,51 @@
+
+> wareminder@1.0.0 test:browser
+> playwright test --grep user clicks upgrade button and completes checkout
+
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] tests/browser/upgrade-flow.spec.js:12:5 › Upgrade Flow - End to End › user clicks upgrade button and completes checkout flow
+[1A[2Ktests/browser/upgrade-flow.spec.js:12:5 › Upgrade Flow - End to End › user clicks upgrade button and completes checkout flow
+
+=== STEP 1: Load Popup ===
+
+[1A[2K✓ Popup loaded with correct viewport (400px)
+
+[1A[2K
+=== STEP 2: Verify Upgrade Prompt is Visible ===
+
+[1A[2KUpgrade prompt hidden, making it visible...
+
+[1A[2K✓ Upgrade prompt is visible with button
+
+[1A[2K
+=== STEP 3: User Clicks Upgrade Button ===
+
+[1A[2K✓ Upgrade button clicked
+
+[1A[2K
+=== STEP 4: Verify INITIATE_CHECKOUT Message ===
+
+[1A[2K  1) tests/browser/upgrade-flow.spec.js:12:5 › Upgrade Flow - End to End › user clicks upgrade button and completes checkout flow 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeDefined[2m()[22m
+
+    Received: [31mundefined[39m
+
+      231 |         );
+      232 |
+    > 233 |         expect(checkoutMessage).toBeDefined();
+          |                                 ^
+      234 |         expect(checkoutMessage.type).toBe("INITIATE_CHECKOUT");
+      235 |         expect(checkoutMessage.payload).toBeDefined();
+      236 |         flowState.isStepPassed.sendCheckoutMessage = true;
+        at /Users/andrew/dev/chromex/wareminder/tests/browser/upgrade-flow.spec.js:233:33
+
+    Error Context: test-results/upgrade-flow-Upgrade-Flow--cad15-and-completes-checkout-flow/error-context.md
+
+
+[1A[2K  1 failed
+    tests/browser/upgrade-flow.spec.js:12:5 › Upgrade Flow - End to End › user clicks upgrade button and completes checkout flow 
+
+[36m  Serving HTML report at http://localhost:54750. Press Ctrl+C to quit.[39m

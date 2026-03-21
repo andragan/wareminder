@@ -80,27 +80,60 @@ All magic values (plan limits, status enums, storage keys, message types) live i
 
 ## Testing Strategy
 
-**Test Patterns:**
-- **Unit Tests**: Mock Chrome APIs and storage; test service logic in isolation
-- **E2E Tests**: Simulate full user workflows (create → complete → delete) with mock storage
-- **Setup**: [jest.setup.js](jest.setup.js) injects `jest-chrome` global; [jest.config.js](jest.config.js) enforces 80% coverage for `src/lib/**` and `src/services/**`
+**Test Framework: Playwright Only**
+
+WAReminder uses **Playwright exclusively** for all tests. Playwright runs tests in a real browser environment with the actual Chrome extension loaded, catching integration issues that unit test mocks miss.
+
+**Why Playwright Only:**
+- Catches real bugs that mocked Chrome APIs hide (like the "Invalid message format" bug you just fixed)
+- Tests the actual extension behavior in a real browser
+- Validates message format, Chrome API contracts, and UI interactions all together
+- Unit test mocks provide false confidence while real features break
 
 **Running Tests:**
 ```bash
-npm test              # Run with coverage
-npm run test:watch    # Watch mode for development
+npm test              # Run Playwright tests
+npm run test:watch    # Playwright watch/debug mode
+npm run test:head    # Playwright headed mode (see browser)
 ```
 
-**Mock Storage Pattern** (from [tests/e2e/badge-count.test.js](tests/e2e/badge-count.test.js)):
+**Test Organization:**
+- [tests/browser/](tests/browser/) - All Playwright tests for the extension
+- Tests should cover:
+  - UI interactions with Chrome API messaging
+  - Payment flows and checkout
+  - Subscription management
+  - Content script injection and DOM updates
+  - Alarm/notification triggers
+  - Storage synchronization
+  - Badge updates
+  - Cross-component communication (popup ↔ service worker ↔ content scripts)
+
+**Test Patterns:**
+- Mock `window.chrome` API in `addInitScript` before loading the page
+- Capture and log all `chrome.runtime.sendMessage` calls to verify message format
+- Verify handlers execute and return expected responses
+- Check DOM updates and UI state changes
+- Use page.evaluate() to inject mocks that match real implementations
+
+**Mock Storage Pattern:**
 ```javascript
-mockStorage = {
-  getReminders: jest.fn(() => Promise.resolve([...storedReminders])),
-  saveReminders: jest.fn((reminders) => {
-    storedReminders = [...reminders];
-    return Promise.resolve();
-  }),
-};
+await page.addInitScript(() => {
+  window.__sentMessages = [];
+  window.chrome = {
+    runtime: {
+      sendMessage: (message, callback) => {
+        window.__sentMessages.push(message); // Capture for verification
+        // Route based on message.type, respond accordingly
+        callback({ success: true, data: {...} });
+      },
+      // ... other Chrome APIs
+    }
+  };
+});
 ```
+
+**Key Insight:** Jest unit tests can pass while real features break if they only mock Chrome APIs without validating actual message format and integration. Playwright catches these issues by running in a real browser environment with the actual extension code.
 
 ## Error Handling & Custom Error Types
 
@@ -180,10 +213,11 @@ This respects your technical judgment and maintains trust in the development pro
 ## Before Starting Work
 
 1. **Check constants first**: Is this value in [constants.js](src/lib/constants.js)? If not, add it.
-2. **Verify test coverage**: Unit test any new function in `src/services/` or `src/lib/`; run `npm test`.
-3. **Use dependency injection**: Accept optional `deps` parameter in services for testability.
-4. **Review error types**: Use explicit error names; check `error.name` in handlers.
-5. **Avoid cross-file content script imports**: Use message passing instead.
+2. **Write Playwright tests**: All tests must be Playwright tests in [tests/browser/](tests/browser/). Do not write Jest tests.
+3. **Test Chrome API interactions**: Verify that popup/content script UI interactions with `chrome.runtime.sendMessage()` are tested in Playwright.
+4. **Use dependency injection**: Accept optional `deps` parameter in services for testability (for use in Playwright test helpers if needed).
+5. **Review error types**: Use explicit error names; check `error.name` in handlers.
+6. **Avoid cross-file content script imports**: Use message passing instead.
 
 ## External Documentation
 

@@ -117,15 +117,21 @@ describe('payment-service', () => {
     });
   });
 
-  describe('isStripeConfigured', () => {
-    it('should return false when Stripe key is not set', () => {
-      delete process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-      expect(paymentService.isStripeConfigured()).toBe(false);
+  describe('isXenditConfigured', () => {
+    it('should return false when neither XENDIT_API_KEY nor SUPABASE_URL is set', () => {
+      delete process.env.XENDIT_API_KEY;
+      delete process.env.SUPABASE_URL;
+      expect(paymentService.isXenditConfigured()).toBe(false);
     });
 
-    it('should return true when Stripe key is configured', () => {
-      process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY = 'pk_test_123';
-      expect(paymentService.isStripeConfigured()).toBe(true);
+    it('should return true when SUPABASE_URL is configured', () => {
+      process.env.SUPABASE_URL = 'https://test.supabase.co';
+      expect(paymentService.isXenditConfigured()).toBe(true);
+    });
+
+    it('should return true when XENDIT_API_KEY is configured', () => {
+      process.env.XENDIT_API_KEY = 'xnd_test_123';
+      expect(paymentService.isXenditConfigured()).toBe(true);
     });
   });
 });

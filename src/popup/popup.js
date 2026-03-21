@@ -7,22 +7,14 @@
  * @module popup
  */
 
-(function PopupDashboard() {
+import { MESSAGE_TYPES } from "../lib/constants.js";
+
+// Initialize popup dashboard
+function initializePopupDashboard() {
     "use strict";
 
     /** @readonly */
     const ITEMS_PER_PAGE = 50;
-
-    /** @readonly */
-    const MESSAGE_TYPES = {
-        GET_REMINDERS: "GET_REMINDERS",
-        COMPLETE_REMINDER: "COMPLETE_REMINDER",
-        DELETE_REMINDER: "DELETE_REMINDER",
-        CHECK_NOTIFICATION_PERMISSION: "CHECK_NOTIFICATION_PERMISSION",
-        GET_PLAN_STATUS: "GET_PLAN_STATUS",
-        SUBSCRIPTION_STATUS_CHANGED: "SUBSCRIPTION_STATUS_CHANGED",
-        SYNC_SUBSCRIPTION: "SYNC_SUBSCRIPTION",
-    };
 
     // --- DOM References ---
     const loadingState = document.getElementById("loading-state");
@@ -75,16 +67,32 @@
     let upgradePromptDismissed = false;
 
     // --- Init ---
-    document.addEventListener("DOMContentLoaded", init);
-
     async function init() {
-        applyI18n();
-        setupEventListeners();
-        setupStorageListener();
-        await checkNotificationPermission();
-        await loadReminders();
-        await checkCancellationStatus();
+        try {
+            console.log("[popup.js] Starting initialization...");
+            applyI18n();
+            setupEventListeners();
+            setupStorageListener();
+            await checkNotificationPermission();
+            await loadReminders();
+            await checkCancellationStatus();
+            console.log("[popup.js] Initialization complete");
+        } catch (err) {
+            console.error("[popup.js] Initialization error:", err);
+        }
     }
+
+    // Call init() immediately since this is a module script loaded at page end
+    // The DOM is definitely ready by the time this module runs
+    setTimeout(() => {
+        if (document.readyState === "loading") {
+            console.log("[popup.js] DOM still loading, waiting for DOMContentLoaded");
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            console.log("[popup.js] DOM ready, initializing now");
+            init();
+        }
+    }, 0);
 
     /**
      * Applies i18n strings from chrome.i18n to all elements with data-i18n attributes.
@@ -214,7 +222,7 @@
      */
     async function checkCancellationStatus() {
         try {
-            const data = await sendMessage({ type: "GET_CANCELLATION_STATUS" });
+            const data = await sendMessage({ type: MESSAGE_TYPES.GET_CANCELLATION_STATUS });
             if (data?.isCancelled && data?.daysRemaining !== undefined) {
                 showCancellationWarning(Math.max(0, data.daysRemaining));
             }
@@ -664,7 +672,7 @@
         try {
             // Try to get subscription details from backend
             const subscriptionStatus = await sendMessage({
-                type: "GET_SUBSCRIPTION_DETAILS",
+                type: MESSAGE_TYPES.GET_SUBSCRIPTION_DETAILS,
             });
 
             if (subscriptionStatus && subscriptionStatus.nextBillingDate) {
@@ -703,7 +711,7 @@
     async function handleManageSubscription() {
         try {
             const response = await sendMessage({
-                type: "REDIRECT_TO_CUSTOMER_PORTAL",
+                type: MESSAGE_TYPES.REDIRECT_TO_CUSTOMER_PORTAL,
             });
             if (!response || !response.success) {
                 console.warn("Failed to redirect to customer portal");
@@ -716,7 +724,7 @@
     async function handleReactivate() {
         try {
             const response = await sendMessage({
-                type: "REACTIVATE_SUBSCRIPTION",
+                type: MESSAGE_TYPES.REACTIVATE_SUBSCRIPTION,
             });
             if (response?.success) {
                 // Refresh UI to show reactivated subscription
@@ -849,7 +857,7 @@
 
             // Initiate checkout via background service
             const response = await sendMessage({
-                type: "INITIATE_CHECKOUT",
+                type: MESSAGE_TYPES.INITIATE_CHECKOUT,
                 payload: { userId: "current_user" }, // Will be resolved in service worker
             });
 
@@ -917,4 +925,7 @@
             sendMessage,
         };
     }
-})();
+}
+
+// Initialize popup dashboard when DOM is ready
+initializePopupDashboard();
