@@ -1,8 +1,7 @@
 const { test, expect } = require("@playwright/test");
-const path = require("path");
 const { setupChromeMock, setupChromeMockStateful } = require("./helpers/chrome-mock-setup");
 
-const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
+const popupUrl = `/src/popup/popup.html`;
 
 test.describe("Upgrade Flow - End to End", () => {
     test.beforeEach(async ({ page }) => {

@@ -177,12 +177,11 @@ const messageHandlers = {
     [MESSAGE_TYPES.INITIATE_CHECKOUT]: async (message) => {
         const userId = message.payload?.userId;
         if (!userId || userId === "current_user") {
-            // Get current user ID from storage or account service
+            // Attempt to resolve the real user ID from the cached subscription.
+            // If not available, fall back to "current_user" so PaymentService can
+            // use the auth token from chrome.identity to identify the user server-side.
             const subscription = await StorageService.getSubscriptionStatus();
-            const resolvedUserId = subscription?.userId;
-            if (!resolvedUserId) {
-                throw new Error("Unable to determine user ID for checkout");
-            }
+            const resolvedUserId = subscription?.userId || "current_user";
             return {
                 success: true,
                 data: {
@@ -227,7 +226,7 @@ const messageHandlers = {
 
     [MESSAGE_TYPES.REACTIVATE_SUBSCRIPTION]: async () => {
         const subscription = await StorageService.getSubscriptionStatus();
-        if (!subscription?.userId) {
+        if (!subscription) {
             throw new Error("No subscription found to reactivate");
         }
         // Clear cancellation status

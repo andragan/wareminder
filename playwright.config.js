@@ -9,8 +9,13 @@ module.exports = defineConfig({
   workers: 1,
   reporter: 'html',
   timeout: 30 * 1000,
+  webServer: {
+    command: 'node scripts/test-server.js',
+    port: 4321,
+    reuseExistingServer: !process.env.CI,
+  },
   use: {
-    baseURL: 'https://web.whatsapp.com',
+    baseURL: 'http://127.0.0.1:4321',
     trace: 'on-first-retry',
   },
 });

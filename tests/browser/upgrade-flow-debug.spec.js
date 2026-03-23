@@ -1,8 +1,7 @@
 const { test, expect } = require("@playwright/test");
-const path = require("path");
 const { setupChromeMock } = require("./helpers/chrome-mock-setup");
 
-const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
+const popupUrl = `/src/popup/popup.html`;
 
 test.describe("Upgrade Flow - INITIATE_CHECKOUT Message", () => {
     test("should send properly formatted INITIATE_CHECKOUT message and open checkout URL", async ({

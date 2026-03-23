@@ -710,12 +710,9 @@ function initializePopupDashboard() {
 
     async function handleManageSubscription() {
         try {
-            const response = await sendMessage({
+            await sendMessage({
                 type: MESSAGE_TYPES.REDIRECT_TO_CUSTOMER_PORTAL,
             });
-            if (!response || !response.success) {
-                console.warn("Failed to redirect to customer portal");
-            }
         } catch (error) {
             console.error("Error managing subscription:", error);
         }
@@ -726,7 +723,7 @@ function initializePopupDashboard() {
             const response = await sendMessage({
                 type: MESSAGE_TYPES.REACTIVATE_SUBSCRIPTION,
             });
-            if (response?.success) {
+            if (response?.reactivated) {
                 // Refresh UI to show reactivated subscription
                 await loadReminders();
                 hideCancellationWarning();
@@ -734,7 +731,7 @@ function initializePopupDashboard() {
             } else {
                 console.warn(
                     "Failed to reactivate subscription:",
-                    response?.error,
+                    response,
                 );
             }
         } catch (error) {
@@ -780,6 +777,20 @@ function initializePopupDashboard() {
     /**
      * Checks if free user has hit reminder limit and shows upgrade prompt if needed
      */
+    /**
+     * Returns true if the plan data indicates a premium plan.
+     * Handles all known field name variants from the plan service response.
+     * @param {object} planData - Plan data from GET_PLAN_STATUS response
+     * @returns {boolean}
+     */
+    function isPremiumPlan(planData) {
+        return (
+            planData.isPremium === true ||
+            planData.plan_type === "premium" ||
+            planData.planType === "premium"
+        );
+    }
+
     async function checkLimitAndShowUpgradePrompt() {
         try {
             const planData = await sendMessage({
@@ -787,8 +798,7 @@ function initializePopupDashboard() {
             });
 
             const FREE_LIMIT = 5;
-            const isPremium =
-                planData.isPremium || planData.plan_type === "premium";
+            const isPremium = isPremiumPlan(planData);
             const activeReminderCount = allReminders.filter(
                 (r) => r.status === "pending",
             ).length;
@@ -849,7 +859,7 @@ function initializePopupDashboard() {
             const planData = await sendMessage({
                 type: MESSAGE_TYPES.GET_PLAN_STATUS,
             });
-            if (planData.isPremium) {
+            if (isPremiumPlan(planData)) {
                 // Already premium, reload page
                 location.reload();
                 return;
