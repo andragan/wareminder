@@ -6,7 +6,8 @@
   "permissions": [
     "alarms",
     "storage",
-    "notifications"
+    "notifications",
+    "identity"
   ],
   "host_permissions": [
     "*://web.whatsapp.com/*"
@@ -41,5 +42,9 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "default_locale": "en"
+  "default_locale": "en",
+  "oauth2": {
+    "client_id": "187376048320-tj7amu9pg5ks16p0jt7k1t5tloi2cf4s.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
+  }
 }

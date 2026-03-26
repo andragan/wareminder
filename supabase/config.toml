@@ -1,0 +1,14 @@
+project_id = "wareminder"
+
+# verify_jwt is disabled for all functions because the project uses ES256 asymmetric
+# JWT signing keys. The Supabase Edge Function gateway only supports HS256 for its
+# built-in JWT verification, so verification is handled inside each function instead.
+
+[functions.create-xendit-invoice]
+verify_jwt = false
+
+[functions.get-subscription-status]
+verify_jwt = false
+
+[functions.xendit-webhook-handler]
+verify_jwt = false

@@ -48,6 +48,7 @@ async function performSync() {
 
     // First, try to sync using service worker context
     const userId = await getCurrentUserId();
+    console.log('Current user ID for sync:', userId);
     if (!userId) {
       console.info('No user ID available for sync (not authenticated)');
       return;
@@ -268,13 +269,73 @@ function notifyPopup(messageType, data) {
 }
 
 /**
- * Get current user ID
- * @returns {Promise<string|null>} User ID or null
+ * Get current user ID by decoding the Google auth token JWT.
+ * Uses non-interactive getAuthToken — no popup shown.
+ * @returns {Promise<string|null>} User ID (JWT sub claim) or null
  */
 async function getCurrentUserId() {
-  // In production, this would get user ID from auth system
-  // For now, return null to indicate we need proper auth integration
-  return null;
+  try {
+    const token = await new Promise((resolve) => {
+      chrome.identity.getAuthToken({ interactive: false }, (tok) => {
+        if (chrome.runtime.lastError) {
+          console.debug('getAuthToken failed:', chrome.runtime.lastError.message);
+          resolve(null);
+        } else {
+          resolve(tok || null);
+        }
+      });
+    });
+
+    if (!token) {
+      console.debug('No token available');
+      return null;
+    }
+
+    console.debug('Token received, attempting to decode');
+    console.debug('Token value (first 50 chars):', typeof token === 'string' ? token.substring(0, 50) : typeof token);
+
+    // Handle edge cases: null string, undefined string, etc.
+    if (token === 'null' || token === 'undefined' || !token || typeof token !== 'string') {
+      console.warn('Token is not a valid string:', typeof token, token);
+      return null;
+    }
+
+    // JWT is three base64url segments: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length < 3) {
+      console.warn('Token does not have expected JWT format (need 3 parts, got', parts.length + ')');
+      console.debug('Token parts:', parts.map((p, i) => `part${i}=[${p.length} chars]`).join(', '));
+      return null;
+    }
+
+    // Decode base64url payload (replace URL-safe chars, pad if needed)
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    
+    let payload;
+    try {
+      const decoded = atob(padded);
+      payload = JSON.parse(decoded);
+    } catch (decodeError) {
+      console.error('Failed to decode JWT payload:', decodeError.message);
+      console.debug('Payload part:', parts[1]);
+      console.debug('Base64 string:', base64);
+      console.debug('Padded string:', padded);
+      console.debug('First 20 chars of base64:', base64.substring(0, 20));
+      return null;
+    }
+
+    const userId = payload.sub || null;
+    if (userId) {
+      console.debug('Successfully extracted user ID from token');
+    } else {
+      console.warn('Token does not contain "sub" claim');
+    }
+    return userId;
+  } catch (error) {
+    console.error('Error getting current user ID:', error);
+    return null;
+  }
 }
 
 /**

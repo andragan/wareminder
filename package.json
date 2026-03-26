@@ -10,6 +10,7 @@
     "test:browser:headed": "playwright test --headed",
     "test:extension": "node tests/browser/manual-extension-test.js",
     "test:extension:edge": "BROWSER=edge node tests/browser/manual-extension-test.js",
+    "test:functions": "deno test --allow-all --env-file=supabase/functions/tests/.env.test supabase/functions/tests/create-xendit-invoice-test.ts",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"
   },

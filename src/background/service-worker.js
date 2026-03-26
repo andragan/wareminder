@@ -20,6 +20,7 @@ import * as PlanService from "../services/plan-service.js";
 import * as PaymentService from "../services/payment-service.js";
 import "./alarm-handler.js";
 import { createReminderNotification } from "./notification-handler.js";
+import { initialize as initSubscriptionSync } from "./subscription-sync.js";
 
 /**
  * Reconciles Chrome alarms with stored reminders.
@@ -107,23 +108,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         handler(message, sender)
             .then((result) => sendResponse(result))
             .catch((err) => {
-                // Wrap storage/Chrome API errors with user-friendly message
-                const isStorageError =
-                    !err.name ||
-                    err.name === "Error" ||
-                    err.name === "StorageError";
-                const friendlyMessage =
-                    isStorageError &&
-                    !err.message.includes("Reminder") &&
-                    !err.message.includes("limit") &&
-                    !err.message.includes("must be") &&
-                    !err.message.includes("Invalid") &&
-                    !err.message.includes("Missing")
-                        ? "Failed to save reminder. Please try again."
-                        : err.message || "An unknown error occurred";
+                console.error(`Error handling message of type ${message.type}:`, err);
+                // Message types that should expose application errors to user
+                const userFacingMessageTypes = new Set([
+                    MESSAGE_TYPES.CREATE_REMINDER,
+                    MESSAGE_TYPES.COMPLETE_REMINDER,
+                    MESSAGE_TYPES.DELETE_REMINDER,
+                ]);
+                const shouldShowError = userFacingMessageTypes.has(
+                    message.type,
+                );
+                const errorMessage = shouldShowError
+                    ? err.message
+                    : "Failed to process request. Please try again.";
                 sendResponse({
                     success: false,
-                    error: friendlyMessage,
+                    error: errorMessage,
                 });
             });
         return true; // Keep channel open for async sendResponse
@@ -176,18 +176,68 @@ const messageHandlers = {
 
     [MESSAGE_TYPES.INITIATE_CHECKOUT]: async (message) => {
         const userId = message.payload?.userId;
+        console.log("Received INITIATE_CHECKOUT message with userId:", userId);
         if (!userId || userId === "current_user") {
-            // Get current user ID from storage or account service
             const subscription = await StorageService.getSubscriptionStatus();
-            const resolvedUserId = subscription?.userId;
+            let resolvedUserId = subscription?.userId;
+
             if (!resolvedUserId) {
-                throw new Error("Unable to determine user ID for checkout");
+                // No cached userId — prompt user to sign in (interactive auth)
+                try {
+                    const token = await new Promise((resolve, reject) => {
+                        chrome.identity.getAuthToken(
+                            { interactive: true },
+                            (tok) => {
+                                if (chrome.runtime.lastError) {
+                                    reject(chrome.runtime.lastError);
+                                } else {
+                                    resolve(tok || null);
+                                }
+                            },
+                        );
+                    });
+
+                    if (!token || typeof token !== 'string') {
+                        console.debug('No valid token or wrong type:', typeof token, token);
+                        throw new Error(
+                            "Please sign in to your Google account to upgrade",
+                        );
+                    }
+
+                    console.debug('Auth token received (first 20 chars):', token.substring(0, 20));
+
+                    // Use the token to fetch user info from Google
+                    const userinfoResponse = await fetch(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        { headers: { Authorization: `Bearer ${token}` } },
+                    );
+                    if (!userinfoResponse.ok) {
+                        throw new Error("Failed to fetch user info from Google");
+                    }
+                    const userinfo = await userinfoResponse.json();
+                    resolvedUserId = userinfo.sub;
+
+                    if (!resolvedUserId) {
+                        throw new Error("Unable to extract user ID from token");
+                    }
+                } catch (error) {
+                    throw new Error(
+                        error.message ||
+                            "Please sign in to your Google account to upgrade",
+                    );
+                }
             }
+
+            console.log(
+                "Initiating checkout for user ID:",
+                resolvedUserId,
+            );
             return {
                 success: true,
                 data: {
-                    checkoutUrl:
-                        await PaymentService.initiateCheckout(resolvedUserId),
+                    checkoutUrl: await PaymentService.initiateCheckout(
+                        resolvedUserId,
+                    ),
                 },
             };
         }
@@ -254,4 +304,10 @@ StorageService.onRemindersChanged((reminders) => {
     await checkOverdueReminders();
     await ReminderService.cleanupExpiredCompleted();
     await updateBadge();
+
+    try {
+        await initSubscriptionSync();
+    } catch (err) {
+        console.error('Subscription sync failed on startup:', err);
+    }
 })();

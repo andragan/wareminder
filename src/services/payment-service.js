@@ -5,6 +5,8 @@
  * @module payment-service
  */
 
+import { SUPABASE_CONFIG } from "../lib/constants.js";
+
 /**
  * Initiate Xendit checkout session for premium upgrade
  * Opens Xendit invoice checkout URL in new tab/window
@@ -25,7 +27,7 @@ export async function initiateCheckout(userId) {
 
         // Call backend to create Xendit invoice checkout session
         const response = await fetch(
-            `${process.env.SUPABASE_URL}/functions/v1/create-xendit-invoice`,
+            `${SUPABASE_CONFIG.URL}/functions/v1/create-xendit-invoice`,
             {
                 method: "POST",
                 headers: {
@@ -42,18 +44,18 @@ export async function initiateCheckout(userId) {
             );
         }
 
-        const { sessionUrl } = await response.json();
-        if (!sessionUrl) {
-            throw new Error("No session URL returned from server");
+        const { invoiceUrl } = await response.json();
+        if (!invoiceUrl) {
+            throw new Error("No invoice URL returned from server");
         }
 
         // Open checkout in new tab
-        chrome.tabs.create({ url: sessionUrl });
+        chrome.tabs.create({ url: invoiceUrl });
 
         // Listen for checkout completion
         setupCheckoutListener(userId);
 
-        return sessionUrl;
+        return invoiceUrl;
     } catch (error) {
         console.error("Error initiating checkout:", error);
         return null;
@@ -80,7 +82,7 @@ export async function redirectToCustomerPortal(userId) {
 
         // Call backend to get Xendit portal link
         const response = await fetch(
-            `${process.env.SUPABASE_URL}/functions/v1/get-subscription-status`,
+            `${SUPABASE_CONFIG.URL}/functions/v1/get-subscription-status`,
             {
                 method: "POST",
                 headers: {
@@ -203,5 +205,5 @@ async function getAuthToken() {
  * @returns {boolean} True if Xendit is configured
  */
 export function isXenditConfigured() {
-    return !!process.env.XENDIT_API_KEY || !!process.env.SUPABASE_URL;
+    return !!SUPABASE_CONFIG.URL;
 }

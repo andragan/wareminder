@@ -92,10 +92,19 @@ WAReminder uses **Playwright exclusively** for all tests. Playwright runs tests 
 
 **Running Tests:**
 ```bash
-npm test              # Run Playwright tests
-npm run test:watch    # Playwright watch/debug mode
+npm test              # Run Playwright tests (uses json reporter by default)
+npm run test:watch   # Playwright watch/debug mode
 npm run test:head    # Playwright headed mode (see browser)
 ```
+
+**CRITICAL: Always use JSON or line reporting when running tests via CLI.** The HTML reporter will hang because the system cannot read HTML output. Use one of:
+```bash
+npm test -- --reporter=json                          # Machine-readable output
+npm test -- --reporter=line                          # Single-line output (recommended for CLI)
+npm test -- tests/browser/file.spec.js --reporter=line    # Run specific test file
+```
+
+Never use HTML reporter in automated or CLI contexts. HTML reporter is only for local browser viewing in headless mode.
 
 **Test Organization:**
 - [tests/browser/](tests/browser/) - All Playwright tests for the extension
@@ -218,6 +227,7 @@ This respects your technical judgment and maintains trust in the development pro
 4. **Use dependency injection**: Accept optional `deps` parameter in services for testability (for use in Playwright test helpers if needed).
 5. **Review error types**: Use explicit error names; check `error.name` in handlers.
 6. **Avoid cross-file content script imports**: Use message passing instead.
+7. **Use correct test reporters**: Always use `--reporter=json` or `--reporter=line` when running tests. Never use HTML reporter in CLI/automated contexts—it causes hangs. HTML reporter is only for local viewing.
 
 ## External Documentation
 

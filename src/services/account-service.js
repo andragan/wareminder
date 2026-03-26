@@ -131,6 +131,7 @@ export async function syncSubscriptionFromBackend(userId) {
     // Update local cache
     await chrome.storage.local.set({
       subscriptionStatus: {
+        userId,
         plan_type: subscription.plan_type,
         status: subscription.status,
         trial_end_date: subscription.trial_end_date,

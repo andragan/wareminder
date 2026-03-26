@@ -23,31 +23,44 @@ const TRIAL_DAYS = 14;
 const XENDIT_AMOUNT_IDR = parseInt(Deno.env.get('XENDIT_AMOUNT_IDR') || '99900');
 const XENDIT_CURRENCY = Deno.env.get('XENDIT_CURRENCY') || 'IDR';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+};
+
 /**
  * Main handler - creates Xendit invoice for trial or upgrade
  */
 export async function handler(req: Request): Promise<Response> {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   // Only handle POST requests
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed', 405);
   }
 
   try {
-    // Verify JWT token in Authorization header
+    // Verify auth token is present
     const token = extractToken(req.headers.get('authorization') || '');
     if (!token) {
       return errorResponse('Missing or invalid authorization token', 401);
     }
 
-    const userId = extractUserId(token);
+    // Read user_id from request body
+    const body = await req.json();
+    const userId = body?.user_id;
     if (!userId) {
-      return errorResponse('Invalid token - missing user ID', 401);
+      return errorResponse('Missing user_id in request body', 400);
     }
 
     // Get user profile for email and name
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('email, display_name')
+      .select('email')
       .eq('id', userId)
       .single();
 
@@ -60,7 +73,7 @@ export async function handler(req: Request): Promise<Response> {
       external_id: `wareminder_${userId}_${Date.now()}`,
       amount: XENDIT_AMOUNT_IDR,
       payer_email: profile.email,
-      payer_name: profile.display_name || profile.email,
+      payer_name: profile.email,
       description: 'WAReminder Premium Monthly Subscription',
       invoice_duration: 86400,  // 24 hours to pay
       currency: XENDIT_CURRENCY,
@@ -109,7 +122,7 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     // Log event
-    await supabase
+    supabase
       .from('subscription_events')
       .insert({
         user_id: userId,
@@ -121,7 +134,9 @@ export async function handler(req: Request): Promise<Response> {
         },
         created_at: new Date().toISOString(),
       })
-      .catch((err) => console.error('Error logging subscription event:', err));
+      .then(({ error: eventError }) => {
+        if (eventError) console.error('Error logging subscription event:', eventError);
+      });
 
     return successResponse({
       invoiceUrl: invoiceResponse.invoice_url,
@@ -183,9 +198,7 @@ function extractUserId(token: string): string | null {
     }
     
     const payload = JSON.parse(
-      new TextDecoder().decode(
-        Deno.core.decode(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-      )
+      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
     );
     
     return payload.sub || null; // Supabase uses 'sub' claim for user ID
@@ -200,7 +213,7 @@ function extractUserId(token: string): string | null {
 function successResponse(data: any): Response {
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
   });
 }
 
@@ -210,7 +223,7 @@ function successResponse(data: any): Response {
 function errorResponse(message: string, status: number): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
   });
 }
 

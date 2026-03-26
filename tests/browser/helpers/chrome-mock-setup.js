@@ -186,11 +186,25 @@ async function setupChromeMock(
                 },
                 storage: {
                     local: {
-                        get: () => Promise.resolve({}),
+                        get: () => Promise.resolve({
+                            subscriptionStatus: {
+                                userId: "test-user-123", // Include userId to avoid interactive auth in test
+                                plan_type: isPremium ? "premium" : "free",
+                                status: "active",
+                            },
+                        }),
                         set: () => Promise.resolve(),
                     },
                     onChanged: {
                         addListener: () => {},
+                    },
+                },
+                identity: {
+                    getAuthToken: (config, callback) => {
+                        console.log(`${prefix} getAuthToken called with interactive:`, config.interactive);
+                        // Return a mock JWT for testing
+                        const mockJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXItMTIzIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+                        callback(mockJWT);
                     },
                 },
                 i18n: {
