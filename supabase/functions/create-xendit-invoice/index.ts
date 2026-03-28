@@ -65,7 +65,7 @@ export async function handler(req: Request): Promise<Response> {
       .single();
 
     if (!profile || profileError) {
-      return errorResponse('User profile not found', 404);
+      return errorResponse(`User profile not found | userId=${userId} | supabase_error=${JSON.stringify(profileError)}`, 404);
     }
 
     // Create Xendit invoice
