@@ -78,7 +78,7 @@ specs/002-premium-upgrade/
 │   ├── manifest.md      # No new permissions; no manifest changes for MVP
 │   ├── services.md      # Subscription service, account service, payment webhook handler
 │   └── messages.md      # New i18n strings for upgrade prompts, premium badge, subscription status, errors
-└── tasks.md             # Phase 2: Task breakdown (not created by /speckit.plan)
+└── tasks.md             # Phase 2: Task breakdown
 ```
 
 ### Backend (Supabase)
