@@ -13,12 +13,8 @@ import { SUPABASE_CONFIG } from "../lib/constants.js";
  * @param {string} userId - User ID
  * @returns {Promise<string|null>} Checkout session URL or null on error
  */
-export async function initiateCheckout(userId) {
+export async function initiateCheckout() {
     try {
-        if (!userId) {
-            throw new Error("User ID required to initiate checkout");
-        }
-
         // Get auth token
         const token = await getAuthToken();
         if (!token) {
@@ -26,6 +22,7 @@ export async function initiateCheckout(userId) {
         }
 
         // Call backend to create Xendit invoice checkout session
+        // User identity is resolved server-side from the Authorization token
         const response = await fetch(
             `${SUPABASE_CONFIG.URL}/functions/v1/create-xendit-invoice`,
             {
@@ -34,7 +31,7 @@ export async function initiateCheckout(userId) {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ user_id: userId }),
+                body: JSON.stringify({}),
             },
         );
 
@@ -53,7 +50,7 @@ export async function initiateCheckout(userId) {
         chrome.tabs.create({ url: invoiceUrl });
 
         // Listen for checkout completion
-        setupCheckoutListener(userId);
+        setupCheckoutListener();
 
         return invoiceUrl;
     } catch (error) {
@@ -121,12 +118,10 @@ export async function redirectToCustomerPortal(userId) {
  * @param {string} invoiceId - Xendit invoice ID
  * @returns {Promise<boolean>} True if handled successfully
  */
-export async function handleCheckoutSuccess(userId, invoiceId) {
+export async function handleCheckoutSuccess(invoiceId) {
     try {
-        if (!userId || !invoiceId) {
-            throw new Error(
-                "User ID and invoice ID required for payment confirmation",
-            );
+        if (!invoiceId) {
+            throw new Error("Invoice ID required for payment confirmation");
         }
 
         // Update local cache with new subscription status
@@ -155,11 +150,11 @@ export async function handleCheckoutSuccess(userId, invoiceId) {
  * Listens for messages from service worker about checkout payment
  * @param {string} userId - User ID
  */
-function setupCheckoutListener(userId) {
+function setupCheckoutListener() {
     // Listen for messages from service worker about checkout payment
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === "CHECKOUT_PAID") {
-            handleCheckoutSuccess(userId, message.invoiceId);
+            handleCheckoutSuccess(message.invoiceId);
             sendResponse({ success: true });
         }
     });

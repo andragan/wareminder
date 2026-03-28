@@ -50,23 +50,34 @@ export async function handler(req: Request): Promise<Response> {
       return errorResponse('Missing or invalid authorization token', 401);
     }
 
-    // Read user_id from request body
-    const body = await req.json();
-    const userId = body?.user_id;
-    if (!userId) {
-      return errorResponse('Missing user_id in request body', 400);
+    // Resolve user from Google OAuth token (look up by email)
+    const googleEmail = await resolveEmailFromGoogleToken(token);
+    if (!googleEmail) {
+      return errorResponse('Could not resolve user from token', 401);
     }
 
-    // Get user profile for email and name
-    const { data: profile, error: profileError } = await supabase
+    // Get or create user profile by email (supports Google OAuth where sub != Supabase UUID)
+    let { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('email')
-      .eq('id', userId)
+      .select('id, email')
+      .eq('email', googleEmail)
       .single();
 
-    if (!profile || profileError) {
-      return errorResponse(`User profile not found | userId=${userId} | supabase_error=${JSON.stringify(profileError)}`, 404);
+    if (!profile) {
+      // No profile yet — auto-create one for this Google OAuth user
+      const { data: created, error: createError } = await supabase
+        .from('user_profiles')
+        .insert({ id: crypto.randomUUID(), email: googleEmail, plan_type: 'free' })
+        .select('id, email')
+        .single();
+
+      if (!created || createError) {
+        return errorResponse(`Failed to create user profile | email=${googleEmail} | error=${JSON.stringify(createError)}`, 500);
+      }
+      profile = created;
     }
+
+    const userId = profile.id;
 
     // Create Xendit invoice
     const invoiceData = {
@@ -173,6 +184,23 @@ async function createXenditInvoice(invoiceData: any): Promise<any> {
   } catch (error) {
     console.error('Xendit API error:', error);
     throw error;
+  }
+}
+
+/**
+ * Resolve email from a Google OAuth access token via Google userinfo endpoint.
+ * Returns null if the token is invalid or the request fails.
+ */
+async function resolveEmailFromGoogleToken(token: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const info = await res.json();
+    return info.email || null;
+  } catch {
+    return null;
   }
 }
 

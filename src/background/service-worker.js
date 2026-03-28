@@ -174,77 +174,11 @@ const messageHandlers = {
         return { success: true, data: { permissionLevel: level } };
     },
 
-    [MESSAGE_TYPES.INITIATE_CHECKOUT]: async (message) => {
-        const userId = message.payload?.userId;
-        console.log("Received INITIATE_CHECKOUT message with userId:", userId);
-        if (!userId || userId === "current_user") {
-            const subscription = await StorageService.getSubscriptionStatus();
-            let resolvedUserId = subscription?.userId;
-
-            if (!resolvedUserId) {
-                // No cached userId — prompt user to sign in (interactive auth)
-                try {
-                    const token = await new Promise((resolve, reject) => {
-                        chrome.identity.getAuthToken(
-                            { interactive: true },
-                            (tok) => {
-                                if (chrome.runtime.lastError) {
-                                    reject(chrome.runtime.lastError);
-                                } else {
-                                    resolve(tok || null);
-                                }
-                            },
-                        );
-                    });
-
-                    if (!token || typeof token !== 'string') {
-                        console.debug('No valid token or wrong type:', typeof token, token);
-                        throw new Error(
-                            "Please sign in to your Google account to upgrade",
-                        );
-                    }
-
-                    console.debug('Auth token received (first 20 chars):', token.substring(0, 20));
-
-                    // Use the token to fetch user info from Google
-                    const userinfoResponse = await fetch(
-                        "https://www.googleapis.com/oauth2/v3/userinfo",
-                        { headers: { Authorization: `Bearer ${token}` } },
-                    );
-                    if (!userinfoResponse.ok) {
-                        throw new Error("Failed to fetch user info from Google");
-                    }
-                    const userinfo = await userinfoResponse.json();
-                    resolvedUserId = userinfo.sub;
-
-                    if (!resolvedUserId) {
-                        throw new Error("Unable to extract user ID from token");
-                    }
-                } catch (error) {
-                    throw new Error(
-                        error.message ||
-                            "Please sign in to your Google account to upgrade",
-                    );
-                }
-            }
-
-            console.log(
-                "Initiating checkout for user ID:",
-                resolvedUserId,
-            );
-            return {
-                success: true,
-                data: {
-                    checkoutUrl: await PaymentService.initiateCheckout(
-                        resolvedUserId,
-                    ),
-                },
-            };
-        }
+    [MESSAGE_TYPES.INITIATE_CHECKOUT]: async () => {
         return {
             success: true,
             data: {
-                checkoutUrl: await PaymentService.initiateCheckout(userId),
+                checkoutUrl: await PaymentService.initiateCheckout(),
             },
         };
     },
