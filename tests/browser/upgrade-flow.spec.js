@@ -110,7 +110,7 @@ test.describe("Upgrade Flow - End to End", () => {
         const checkoutUrl = await page.evaluate(
             () => window.__flowState.checkoutUrlOpened
         );
-        expect(checkoutUrl).toContain("xendit");
+        expect(checkoutUrl).toContain("paddle");
 
         await page.waitForFunction(() => {
             const tabsCreated = window.__flowState?.tabsCreated || [];
@@ -121,7 +121,7 @@ test.describe("Upgrade Flow - End to End", () => {
             () => window.__flowState.tabsCreated
         );
         expect(tabsCreated.length).toBeGreaterThan(0);
-        expect(tabsCreated[0].url).toContain("xendit");
+        expect(tabsCreated[0].url).toContain("paddle");
     });
 
     test("handles checkout error gracefully", async ({ page }) => {

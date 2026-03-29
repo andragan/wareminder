@@ -23,7 +23,7 @@ async function setupChromeMock(
     const {
         isPremium = false,
         reminderCount = 5,
-        checkoutUrl = "https://xendit.co/checkout/session-123",
+        checkoutUrl = "https://sandbox-checkout.paddle.com/checkout/session-123",
         isCancelled = false,
         permissionLevel = "granted",
         prefix = "[CHROME-MOCK]",

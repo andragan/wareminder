@@ -136,6 +136,9 @@ const MUTATION_OBSERVER_DEBOUNCE_MS = 100;
 /** @readonly */
 const SCHEMA_VERSION = 1;
 
+/** Active payment provider. Change to "xendit" to restore Xendit. @readonly */
+const PAYMENT_PROVIDER = "paddle";
+
 // ES6 exports
 export {
     PLAN_LIMITS,
@@ -156,7 +159,8 @@ export {
     SUBSCRIPTION_PLANS,
     SUBSCRIPTION_STATUS,
     SUBSCRIPTION_EVENT_TYPES,
-    SUPABASE_CONFIG
+    SUPABASE_CONFIG,
+    PAYMENT_PROVIDER
 };
 
 // Export for both module and non-module contexts

@@ -117,21 +117,21 @@ describe('payment-service', () => {
     });
   });
 
-  describe('isXenditConfigured', () => {
-    it('should return false when neither XENDIT_API_KEY nor SUPABASE_URL is set', () => {
+  describe('isPaymentConfigured', () => {
+    it('should return false when SUPABASE_URL is not set', () => {
       delete process.env.XENDIT_API_KEY;
       delete process.env.SUPABASE_URL;
-      expect(paymentService.isXenditConfigured()).toBe(false);
+      expect(paymentService.isPaymentConfigured()).toBe(false);
     });
 
     it('should return true when SUPABASE_URL is configured', () => {
       process.env.SUPABASE_URL = 'https://test.supabase.co';
-      expect(paymentService.isXenditConfigured()).toBe(true);
+      expect(paymentService.isPaymentConfigured()).toBe(true);
     });
 
     it('should return true when XENDIT_API_KEY is configured', () => {
       process.env.XENDIT_API_KEY = 'xnd_test_123';
-      expect(paymentService.isXenditConfigured()).toBe(true);
+      expect(paymentService.isPaymentConfigured()).toBe(true);
     });
   });
 });

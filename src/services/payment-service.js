@@ -1,204 +1,63 @@
 // @ts-check
 /**
- * Payment Service
- * Manages Xendit integration: invoice creation, checkout session handling
+ * Payment Service — Provider Router
+ * Delegates all payment operations to the active provider selected by PAYMENT_PROVIDER.
+ * To switch providers, change PAYMENT_PROVIDER in src/lib/constants.js.
  * @module payment-service
  */
 
-import { SUPABASE_CONFIG } from "../lib/constants.js";
+import { PAYMENT_PROVIDER } from "../lib/constants.js";
+import * as XenditProvider from "./providers/xendit-provider.js";
+import * as PaddleProvider from "./providers/paddle-provider.js";
 
 /**
- * Initiate Xendit checkout session for premium upgrade
- * Opens Xendit invoice checkout URL in new tab/window
- * @param {string} userId - User ID
- * @returns {Promise<string|null>} Checkout session URL or null on error
+ * Return the active payment provider module.
+ * @returns {typeof XenditProvider}
  */
-export async function initiateCheckout() {
-    try {
-        // Get auth token
-        const token = await getAuthToken();
-        if (!token) {
-            throw new Error("Authentication required for checkout");
-        }
-
-        // Call backend to create Xendit invoice checkout session
-        // User identity is resolved server-side from the Authorization token
-        const response = await fetch(
-            `${SUPABASE_CONFIG.URL}/functions/v1/create-xendit-invoice`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({}),
-            },
-        );
-
-        if (!response.ok) {
+function getProvider() {
+    switch (PAYMENT_PROVIDER) {
+        case "paddle":
+            return PaddleProvider;
+        case "xendit":
+            return XenditProvider;
+        default:
             throw new Error(
-                `Checkout session creation failed: ${response.status}`,
+                `Unknown PAYMENT_PROVIDER: "${PAYMENT_PROVIDER}". Expected "paddle" or "xendit".`,
             );
-        }
-
-        const { invoiceUrl } = await response.json();
-        if (!invoiceUrl) {
-            throw new Error("No invoice URL returned from server");
-        }
-
-        // Open checkout in new tab
-        chrome.tabs.create({ url: invoiceUrl });
-
-        // Listen for checkout completion
-        setupCheckoutListener();
-
-        return invoiceUrl;
-    } catch (error) {
-        console.error("Error initiating checkout:", error);
-        return null;
     }
 }
 
 /**
- * Redirect user to Xendit customer portal
- * Opens subscription and invoice management in new tab
+ * Initiate checkout session for premium upgrade.
+ * @returns {Promise<string|null>} Checkout URL or null on error
+ */
+export async function initiateCheckout() {
+    return getProvider().initiateCheckout();
+}
+
+/**
+ * Redirect user to the provider's customer portal.
  * @param {string} userId - User ID
  * @returns {Promise<boolean>} True if portal opened successfully
  */
 export async function redirectToCustomerPortal(userId) {
-    try {
-        if (!userId) {
-            throw new Error("User ID required to access portal");
-        }
-
-        // Get auth token
-        const token = await getAuthToken();
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-
-        // Call backend to get Xendit portal link
-        const response = await fetch(
-            `${SUPABASE_CONFIG.URL}/functions/v1/get-subscription-status`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ user_id: userId }),
-            },
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Portal session creation failed: ${response.status}`,
-            );
-        }
-
-        const { portalUrl } = await response.json();
-        if (!portalUrl) {
-            throw new Error("No portal URL returned from server");
-        }
-
-        // Open portal in new tab
-        chrome.tabs.create({ url: portalUrl });
-
-        return true;
-    } catch (error) {
-        console.error("Error accessing customer portal:", error);
-        return false;
-    }
+    return getProvider().redirectToCustomerPortal(userId);
 }
 
 /**
- * Handle successful checkout payment
- * Called when checkout session is completed and payment is confirmed
- * @param {string} userId - User ID
- * @param {string} invoiceId - Xendit invoice ID
+ * Handle successful payment confirmation.
+ * @param {string} transactionId - Provider transaction/invoice ID
  * @returns {Promise<boolean>} True if handled successfully
  */
-export async function handleCheckoutSuccess(invoiceId) {
-    try {
-        if (!invoiceId) {
-            throw new Error("Invoice ID required for payment confirmation");
-        }
-
-        // Update local cache with new subscription status
-        // Invoice payment will be processed by Xendit webhook
-        await chrome.storage.local.set({
-            subscriptionStatus: {
-                plan_type: "premium",
-                status: "trial",
-                invoice_id: invoiceId,
-                last_synced_at: new Date().toISOString(),
-            },
-        });
-
-        console.info(
-            "Invoice payment initiated, subscription will activate upon payment",
-        );
-        return true;
-    } catch (error) {
-        console.error("Error handling payment success:", error);
-        return false;
-    }
+export async function handleCheckoutSuccess(transactionId) {
+    return getProvider().handleCheckoutSuccess(transactionId);
 }
 
 /**
- * Setup listener for checkout completion
- * Listens for messages from service worker about checkout payment
- * @param {string} userId - User ID
+ * Check whether the active payment provider is configured.
+ * @returns {boolean}
  */
-function setupCheckoutListener() {
-    // Listen for messages from service worker about checkout payment
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === "CHECKOUT_PAID") {
-            handleCheckoutSuccess(message.invoiceId);
-            sendResponse({ success: true });
-        }
-    });
+export function isPaymentConfigured() {
+    return getProvider().isConfigured();
 }
 
-/**
- * Setup listener for invoice payment completion
- * @param {string} userId - User ID
- */
-function setupInvoiceListener(userId) {
-    // Listen for messages from service worker about invoice payment
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === "INVOICE_PAID") {
-            handleCheckoutSuccess(userId, message.invoiceId);
-            sendResponse({ success: true });
-        }
-    });
-}
-
-/**
- * Helper: Get auth token from Chrome identity API
- * @returns {Promise<string|null>} Auth token or null
- */
-async function getAuthToken() {
-    return new Promise((resolve) => {
-        // @ts-ignore - Chrome API
-        chrome.identity?.getAuthToken({ interactive: false }, (token) => {
-            if (chrome.runtime.lastError) {
-                console.error(
-                    "Failed to get auth token:",
-                    chrome.runtime.lastError,
-                );
-                resolve(null);
-            } else {
-                resolve(token || null);
-            }
-        });
-    });
-}
-
-/**
- * Validate Xendit configuration is available
- * @returns {boolean} True if Xendit is configured
- */
-export function isXenditConfigured() {
-    return !!SUPABASE_CONFIG.URL;
-}
