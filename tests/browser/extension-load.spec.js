@@ -1,8 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs/promises");
-
-const extensionPath = path.join(__dirname, "../../src");
+const { extensionPath } = require("./helpers/paths");
 
 // DRY helpers
 async function loadManifest() {

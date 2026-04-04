@@ -2,16 +2,16 @@
  * Manual Extension Loading Test
  * Run this locally to verify the extension loads without Chrome/Edge errors
  * 
- * Usage: node tests/browser/manual-extension-test.js
- * Usage with Edge: BROWSER=edge node tests/browser/manual-extension-test.js
+ * Usage: node scripts/manual/manual-extension-test.js
+ * Usage with Edge: BROWSER=edge node scripts/manual/manual-extension-test.js
  */
 
 const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 
-const extensionPath = path.join(__dirname, "../../src");
-const tempProfile = path.join(__dirname, "../../.test-profile-temp");
+const extensionPath = path.join(__dirname, "../../../src");
+const tempProfile = path.join(__dirname, "../../../.test-profile-temp");
 const browserType = process.env.BROWSER || "chromium";
 
 async function testExtensionLoad() {
