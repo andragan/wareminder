@@ -7,7 +7,7 @@ module.exports = defineConfig({
   forbidOnly: process.env.CI !== undefined,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: 'html',
+  reporter: [['list']],
   timeout: 30 * 1000,
   use: {
     baseURL: 'https://web.whatsapp.com',
