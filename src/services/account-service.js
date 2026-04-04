@@ -6,6 +6,7 @@
  */
 
 import { PLAN_LIMITS, SUBSCRIPTION_PLANS } from '../lib/constants.js';
+import * as StorageService from './storage-service.js';
 
 /**
  * Get user's plan type (free or premium)
@@ -16,10 +17,9 @@ export async function getUserPlan(userId) {
   try {
     // In production, this would fetch from backend/cache
     // For now, return from local storage cache
-    const cached = await chrome.storage.local.get(['subscriptionStatus']);
-    const status = cached.subscriptionStatus || {};
+    const status = await StorageService.getSubscriptionStatus();
 
-    return status.plan_type || SUBSCRIPTION_PLANS.FREE;
+    return status?.planType || SUBSCRIPTION_PLANS.FREE;
   } catch (error) {
     console.error('Error getting user plan:', error);
     return SUBSCRIPTION_PLANS.FREE;
@@ -129,17 +129,14 @@ export async function syncSubscriptionFromBackend(userId) {
     const subscription = await response.json();
 
     // Update local cache
-    await chrome.storage.local.set({
-      subscriptionStatus: {
-        userId,
-        plan_type: subscription.plan_type,
-        status: subscription.status,
-        trial_end_date: subscription.trial_end_date,
-        next_billing_date: subscription.next_billing_date,
-        grace_period_end_date: subscription.grace_period_end_date,
-        cancellation_date: subscription.cancellation_date,
-        last_synced_at: new Date().toISOString(),
-      },
+    await StorageService.saveSubscriptionStatus({
+      planType: subscription.plan_type,
+      status: subscription.status,
+      trialEndDate: subscription.trial_end_date,
+      nextBillingDate: subscription.next_billing_date,
+      gracePeriodEndDate: subscription.grace_period_end_date,
+      cancellationDate: subscription.cancellation_date,
+      lastSyncedAt: new Date().toISOString(),
     });
 
     console.info('Subscription synced from backend', subscription);
@@ -155,21 +152,22 @@ export async function syncSubscriptionFromBackend(userId) {
  * @returns {Promise<object>} Cached subscription status
  */
 export async function getCachedSubscription() {
-  const cached = await chrome.storage.local.get(['subscriptionStatus']);
-  return cached.subscriptionStatus || {
-    plan_type: SUBSCRIPTION_PLANS.FREE,
+  const status = await StorageService.getSubscriptionStatus();
+  return status || {
+    planType: SUBSCRIPTION_PLANS.FREE,
     status: 'active',
   };
 }
 
 /**
  * Helper: Get auth token from Chrome identity API
+ * @param {boolean} [interactive=false] - If true, prompt user for sign-in
  * @returns {Promise<string|null>} Auth token or null
  */
-async function getAuthToken() {
+async function getAuthToken(interactive = false) {
   return new Promise((resolve) => {
     // @ts-ignore - Chrome API
-    chrome.identity?.getAuthToken({ interactive: false }, (token) => {
+    chrome.identity?.getAuthToken({ interactive }, (token) => {
       if (chrome.runtime.lastError) {
         console.error('Failed to get auth token:', chrome.runtime.lastError);
         resolve(null);
@@ -178,4 +176,117 @@ async function getAuthToken() {
       }
     });
   });
+}
+
+/**
+ * Helper: Fetch subscription from backend and update local cache
+ * @param {string} token - Auth token
+ * @returns {Promise<object>} Subscription object
+ * @throws {Error} If fetch fails or response is not ok
+ */
+async function fetchAndCacheSubscription(token) {
+  const response = await fetch(
+    `${process.env.SUPABASE_URL}/functions/v1/get-subscription-status`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = new Error(`Subscription fetch failed: ${response.status}`);
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const subscription = await response.json();
+
+  // Update local cache
+  await StorageService.saveSubscriptionStatus({
+    planType: subscription.plan_type,
+    status: subscription.status,
+    trialEndDate: subscription.trial_end_date,
+    nextBillingDate: subscription.next_billing_date,
+    gracePeriodEndDate: subscription.grace_period_end_date,
+    cancellationDate: subscription.cancellation_date,
+    lastSyncedAt: new Date().toISOString(),
+  });
+
+  return subscription;
+}
+
+/**
+ * Perform silent subscription refresh without user interaction.
+ * Returns structured outcome distinguishing successful refresh, auth failure, and other errors.
+ * @returns {Promise<{outcome: 'refreshed'|'auth_required'|'sync_failed', error?: string, subscription?: object}>}
+ */
+export async function silentRefreshSubscription() {
+  try {
+    // Get token silently (no user prompt)
+    const token = await getAuthToken(false);
+    if (!token) {
+      // Silent auth failed - user needs to sign in
+      return {
+        outcome: 'auth_required',
+        error: 'Authentication required for subscription verification',
+      };
+    }
+
+    const subscription = await fetchAndCacheSubscription(token);
+
+    console.info('Subscription silently refreshed from backend', subscription);
+    return {
+      outcome: 'refreshed',
+      subscription,
+    };
+  } catch (error) {
+    if (error.statusCode === 401) {
+      // Token invalid or expired
+      return {
+        outcome: 'auth_required',
+        error: 'Authentication token expired',
+      };
+    }
+    console.error('Error during silent subscription refresh:', error);
+    return {
+      outcome: 'sync_failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Perform interactive auth recovery - prompts user to sign in, then refreshes subscription.
+ * Returns structured outcome distinguishing successful recovery, auth failure, and other errors.
+ * @returns {Promise<{outcome: 'recovered'|'auth_failed'|'sync_failed', error?: string, subscription?: object}>}
+ */
+export async function interactiveAuthRecovery() {
+  try {
+    // Get token interactively (will prompt user if needed)
+    const token = await getAuthToken(true);
+    if (!token) {
+      // User cancelled or auth failed
+      return {
+        outcome: 'auth_failed',
+        error: 'User cancelled sign-in or authentication failed',
+      };
+    }
+
+    const subscription = await fetchAndCacheSubscription(token);
+
+    console.info('Subscription recovered after interactive auth', subscription);
+    return {
+      outcome: 'recovered',
+      subscription,
+    };
+  } catch (error) {
+    console.error('Error during interactive auth recovery:', error);
+    return {
+      outcome: 'sync_failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 }

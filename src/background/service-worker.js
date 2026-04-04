@@ -17,6 +17,7 @@ import {
 import * as StorageService from "../services/storage-service.js";
 import * as ReminderService from "../services/reminder-service.js";
 import * as PlanService from "../services/plan-service.js";
+import * as AccountService from "../services/account-service.js";
 import * as PaymentService from "../services/payment-service.js";
 import "./alarm-handler.js";
 import { createReminderNotification } from "./notification-handler.js";
@@ -167,6 +168,16 @@ const messageHandlers = {
     [MESSAGE_TYPES.GET_PLAN_STATUS]: async () => {
         const status = await PlanService.getPlanStatus();
         return { success: true, data: status };
+    },
+
+    [MESSAGE_TYPES.SILENT_REFRESH_SUBSCRIPTION]: async () => {
+        const outcome = await AccountService.silentRefreshSubscription();
+        return { success: true, data: outcome };
+    },
+
+    [MESSAGE_TYPES.INTERACTIVE_AUTH_RECOVERY]: async () => {
+        const outcome = await AccountService.interactiveAuthRecovery();
+        return { success: true, data: outcome };
     },
 
     [MESSAGE_TYPES.CHECK_NOTIFICATION_PERMISSION]: async () => {

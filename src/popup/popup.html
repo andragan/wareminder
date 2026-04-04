@@ -96,6 +96,18 @@
       </div>
     </div>
 
+    <!-- Auth Recovery Hint (shown when silent verification failed but user was likely premium) -->
+    <div id="auth-recovery-hint" class="auth-recovery-hint" hidden>
+      <div class="auth-recovery-content">
+        <div class="auth-recovery-icon">🔐</div>
+        <h2 class="auth-recovery-title" data-i18n="authRecoveryTitle">Sign in to verify Premium</h2>
+        <p class="auth-recovery-description" data-i18n="authRecoveryDescription">We need to verify your subscription status. Sign in with your Google account.</p>
+        
+        <button id="auth-recovery-btn" class="btn btn--primary auth-recovery-button" data-i18n="signInButton">Sign In</button>
+        <p class="auth-recovery-footnote" data-i18n="recoveryOptional">You can try again anytime</p>
+      </div>
+    </div>
+
     <!-- Account Settings (shows subscription details for premium users) -->
     <div id="account-settings" class="account-settings" hidden>
       <div class="account-settings-content">

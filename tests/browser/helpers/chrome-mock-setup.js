@@ -15,6 +15,8 @@
  * @param {boolean} options.isCancelled - Whether subscription is cancelled (default: false)
  * @param {string} options.permissionLevel - Notification permission level (default: 'granted')
  * @param {string} options.prefix - Log prefix for console messages (default: '[CHROME-MOCK]')
+ * @param {string} options.silentRefreshOutcome - Outcome of silent refresh (default: 'refreshed') - can be 'refreshed', 'auth_required', 'sync_failed'
+ * @param {boolean} options.interactiveAuthSucceeds - Whether interactive auth recovery succeeds (default: true)
  */
 async function setupChromeMock(
     page,
@@ -27,6 +29,8 @@ async function setupChromeMock(
         isCancelled = false,
         permissionLevel = "granted",
         prefix = "[CHROME-MOCK]",
+        silentRefreshOutcome = "refreshed",
+        interactiveAuthSucceeds = true,
     } = options;
 
     await page.addInitScript(
@@ -38,6 +42,8 @@ async function setupChromeMock(
                 isCancelled,
                 permissionLevel,
                 prefix,
+                silentRefreshOutcome,
+                interactiveAuthSucceeds,
             } = config;
 
             // Initialize flow state
@@ -157,6 +163,26 @@ async function setupChromeMock(
                                         window.__flowState.checkoutUrlOpened,
                                 },
                             });
+                        } else if (type === "SILENT_REFRESH_SUBSCRIPTION") {
+                            console.log(
+                                `${prefix} SILENT_REFRESH_SUBSCRIPTION: ${silentRefreshOutcome}`
+                            );
+                            callback({
+                                success: true,
+                                data: {
+                                    outcome: silentRefreshOutcome,
+                                },
+                            });
+                        } else if (type === "INTERACTIVE_AUTH_RECOVERY") {
+                            console.log(
+                                `${prefix} INTERACTIVE_AUTH_RECOVERY: ${interactiveAuthSucceeds ? "success" : "failure"}`
+                            );
+                            callback({
+                                success: true,
+                                data: {
+                                    outcome: interactiveAuthSucceeds ? "recovered" : "auth_failed",
+                                },
+                            });
                         } else {
                             console.warn(
                                 `${prefix} Unknown message type:`,
@@ -219,6 +245,8 @@ async function setupChromeMock(
             isCancelled,
             permissionLevel,
             prefix,
+            silentRefreshOutcome,
+            interactiveAuthSucceeds,
         }
     );
 }
@@ -238,6 +266,8 @@ async function setupChromeMockStateful(page) {
                 data: { checkoutUrl: "https://checkout.example.com/test" },
             },
             checkoutError: null,
+            silentRefreshOutcome: "refreshed",
+            interactiveAuthSucceeds: true,
         };
 
         window.__mockState = state;
@@ -290,6 +320,26 @@ async function setupChromeMockStateful(page) {
                             return;
                         }
                         callback(current.checkoutResponse);
+                        return;
+                    }
+
+                    if (message.type === "SILENT_REFRESH_SUBSCRIPTION") {
+                        callback({
+                            success: true,
+                            data: { outcome: current.silentRefreshOutcome },
+                        });
+                        return;
+                    }
+
+                    if (message.type === "INTERACTIVE_AUTH_RECOVERY") {
+                        callback({
+                            success: true,
+                            data: {
+                                outcome: current.interactiveAuthSucceeds
+                                    ? "recovered"
+                                    : "auth_failed",
+                            },
+                        });
                         return;
                     }
 

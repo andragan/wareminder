@@ -373,5 +373,21 @@
   "reactivateSuccessMessage": {
     "message": "Your subscription is active again. Enjoy unlimited reminders!",
     "description": "Notification message when subscription is reactivated"
+  },
+  "authRecoveryTitle": {
+    "message": "Sign in to verify Premium",
+    "description": "Auth recovery hint title for likely premium users when silent auth fails"
+  },
+  "authRecoveryDescription": {
+    "message": "We need to verify your subscription status. Sign in with your Google account.",
+    "description": "Auth recovery hint description"
+  },
+  "signInButton": {
+    "message": "Sign In",
+    "description": "Button label to initiate sign-in for auth recovery"
+  },
+  "recoveryOptional": {
+    "message": "You can try again anytime",
+    "description": "Footnote text for auth recovery hint"
   }
 }

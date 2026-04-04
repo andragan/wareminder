@@ -59,12 +59,15 @@ function initializePopupDashboard() {
     const cancellationWarning = document.getElementById("cancellation-warning");
     const cancellationText = document.getElementById("cancellation-text");
     const reactivateBtn = document.getElementById("reactivate-btn");
+    const authRecoveryHint = document.getElementById("auth-recovery-hint");
+    const authRecoveryBtn = document.getElementById("auth-recovery-btn");
 
     // --- State ---
     let allReminders = [];
     let currentPage = 1;
     let pendingDeleteId = null;
     let upgradePromptDismissed = false;
+    let lastSilentRefreshOutcome = null; // Track silent refresh outcome for auth recovery hint
 
     // --- Init ---
     async function init() {
@@ -76,6 +79,14 @@ function initializePopupDashboard() {
             await checkNotificationPermission();
             await loadReminders();
             await checkCancellationStatus();
+            
+            // Trigger silent background subscription refresh (non-blocking)
+            // Popup renders from cached state first, then re-renders when sync completes
+            triggerSilentSubscriptionRefresh().catch(err => {
+                console.warn("[popup.js] Silent subscription refresh failed:", err);
+                // Non-critical; render continues with cached state
+            });
+            
             console.log("[popup.js] Initialization complete");
         } catch (err) {
             console.error("[popup.js] Initialization error:", err);
@@ -141,6 +152,8 @@ function initializePopupDashboard() {
                 "click",
                 dismissUpgradePrompt,
             );
+        if (authRecoveryBtn)
+            authRecoveryBtn.addEventListener("click", handleAuthRecovery);
     }
 
     /**
@@ -149,9 +162,18 @@ function initializePopupDashboard() {
     function setupStorageListener() {
         if (chrome.storage && chrome.storage.onChanged) {
             chrome.storage.onChanged.addListener((changes, areaName) => {
-                if (areaName === "local" && changes.reminders) {
-                    allReminders = changes.reminders.newValue || [];
-                    renderReminders();
+                if (areaName === "local") {
+                    // Reminders changed - re-render reminder list
+                    if (changes.reminders) {
+                        allReminders = changes.reminders.newValue || [];
+                        renderReminders();
+                    }
+                    
+                    // Subscription status changed - re-render account UI
+                    if (changes.subscriptionStatus) {
+                        console.log("[popup.js] Subscription status changed in storage, re-rendering UI");
+                        checkLimitAndShowUpgradePrompt();
+                    }
                 }
             });
         }
@@ -178,6 +200,33 @@ function initializePopupDashboard() {
                 }
             });
         });
+    }
+
+    /**
+     * Triggers silent background subscription refresh.
+     * Popup initially renders from cached state, this refreshes in background.
+     * Captures the outcome to determine if auth recovery is needed.
+     * @returns {Promise<void>}
+     */
+    async function triggerSilentSubscriptionRefresh() {
+        try {
+            const response = await sendMessage({
+                type: MESSAGE_TYPES.SILENT_REFRESH_SUBSCRIPTION,
+            });
+            
+            // Capture outcome for auth recovery hint decision
+            if (response.outcome) {
+                lastSilentRefreshOutcome = response.outcome;
+                console.log("[popup.js] Silent subscription refresh outcome:", response.outcome);
+                
+                // If refresh failed with auth_required but user has cached premium status,
+                // checkLimitAndShowUpgradePrompt will show auth recovery hint
+                // (storage listener will trigger the re-render)
+            }
+        } catch (err) {
+            console.warn("[popup.js] Failed to trigger silent refresh:", err);
+            // Non-critical, popup continues with cached state
+        }
     }
 
     /**
@@ -777,8 +826,55 @@ function initializePopupDashboard() {
         if (upgradeButton) upgradeButton.hidden = false;
     }
 
+    function showAuthRecoveryHint() {
+        if (authRecoveryHint) authRecoveryHint.hidden = false;
+    }
+
+    function hideAuthRecoveryHint() {
+        if (authRecoveryHint) authRecoveryHint.hidden = true;
+    }
+
     /**
-     * Checks if free user has hit reminder limit and shows upgrade prompt if needed
+     * Handles auth recovery button click - triggers interactive auth recovery
+     */
+    async function handleAuthRecovery() {
+        if (authRecoveryBtn) authRecoveryBtn.disabled = true;
+
+        try {
+            // Request interactive auth recovery from service worker
+            const {
+                outcome: authRecoveryOutcome,
+                error: authRecoveryError,
+            } = await sendMessage({
+                type: MESSAGE_TYPES.INTERACTIVE_AUTH_RECOVERY,
+            });
+
+            if (authRecoveryOutcome === 'recovered') {
+                // Auth recovery successful, reload popup to show updated premium state
+                console.log("[popup.js] Auth recovery successful, reloading...");
+                hideAuthRecoveryHint();
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else if (authRecoveryOutcome === 'auth_failed') {
+                // User cancelled auth, keep hint visible for retry
+                console.warn("[popup.js] Auth cancelled by user");
+            } else {
+                // Sync failed even with auth
+                console.warn("[popup.js] Auth recovery sync failed:", authRecoveryError);
+            }
+        } catch (error) {
+            console.error("[popup.js] Auth recovery error:", error);
+        } finally {
+            if (authRecoveryBtn) authRecoveryBtn.disabled = false;
+        }
+    }
+
+    /**
+     * Checks plan status and enforces state precedence:
+     * 1. Verified premium -> show account settings
+     * 2. Likely premium but unverified -> show auth recovery hint
+     * 3. Free tier -> check limit and show upgrade prompt if needed
      */
     async function checkLimitAndShowUpgradePrompt() {
         try {
@@ -787,24 +883,39 @@ function initializePopupDashboard() {
             });
 
             const FREE_LIMIT = 5;
-            const isPremium =
-                planData.isPremium || planData.plan_type === "premium";
+            const isPremium = planData.isPremium;
             const activeReminderCount = allReminders.filter(
                 (r) => r.status === "pending",
             ).length;
 
-            // Show account settings for premium users
+            // --- State Precedence Logic ---
+            
+            // 1. Verified premium (isPremium from subscription contract)
             if (isPremium) {
                 showPremiumBadge();
                 showAccountSettings();
                 await updateAccountSettingsDisplay(planData);
                 hideUpgradePrompt();
+                hideAuthRecoveryHint();
                 return true;
             }
 
-            // Show upgrade prompt if free user has 5+ reminders (unless dismissed)
-            if (!isPremium && activeReminderCount >= FREE_LIMIT) {
+            // 2. Likely premium but unverified (auth failed during silent refresh)
+            // Show recovery hint instead of upgrade prompt
+            if (lastSilentRefreshOutcome === 'auth_required') {
                 hidePremiumBadge();
+                hideAccountSettings();
+                hideUpgradePrompt();
+                showAuthRecoveryHint();
+                console.log("[popup.js] Showing auth recovery hint (auth_required outcome)");
+                return true;
+            }
+
+            // 3. Free tier - check reminder limit
+            hidePremiumBadge();
+            hideAuthRecoveryHint();
+            
+            if (activeReminderCount >= FREE_LIMIT) {
                 hideAccountSettings();
                 if (!upgradePromptDismissed) {
                     showUpgradePrompt();
@@ -820,7 +931,6 @@ function initializePopupDashboard() {
             }
 
             // Free user with < 5 reminders - show normal list
-            hidePremiumBadge();
             hideUpgradePrompt();
             hideAccountSettings();
             if (reminderList) reminderList.hidden = false;
