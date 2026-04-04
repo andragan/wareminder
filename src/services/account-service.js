@@ -5,7 +5,7 @@
  * @module account-service
  */
 
-import { PLAN_LIMITS, SUBSCRIPTION_PLANS } from "../lib/constants.js";
+import { PLAN_LIMITS, SUBSCRIPTION_PLANS, SUPABASE_CONFIG } from "../lib/constants.js";
 import * as StorageService from "./storage-service.js";
 
 /**
@@ -162,8 +162,9 @@ async function getAuthToken(interactive = false) {
  * @throws {Error} If fetch fails or response is not ok
  */
 async function fetchAndCacheSubscription(token) {
+
     const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/get-subscription-status`,
+        `${SUPABASE_CONFIG.URL}/functions/v1/get-subscription-status`,
         {
             method: "GET",
             headers: {

@@ -28,21 +28,36 @@ const supabase = createClient(
  * Main handler - returns subscription status
  */
 export async function handler(req: Request): Promise<Response> {
+  // CORS: allow Chrome extension origin
+  const CORS_ORIGIN = "chrome-extension://dlghdpeofiljpkjopohgfpkheoplogof";
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": CORS_ORIGIN,
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
   // Only handle GET requests
   if (req.method !== 'GET') {
-    return errorResponse('Method not allowed', 405);
+    return errorResponse('Method not allowed', 405, CORS_ORIGIN);
   }
 
   try {
     // Verify JWT token
     const token = extractToken(req.headers.get('authorization') || '');
     if (!token) {
-      return errorResponse('Missing or invalid authorization token', 401);
+      return errorResponse('Missing or invalid authorization token', 401, CORS_ORIGIN);
     }
 
     const userId = extractUserId(token);
     if (!userId) {
-      return errorResponse('Invalid token - missing user ID', 401);
+      return errorResponse('Invalid token - missing user ID', 401, CORS_ORIGIN);
     }
 
     // Get user plan from user_profiles table
@@ -53,7 +68,7 @@ export async function handler(req: Request): Promise<Response> {
       .single();
 
     if (!profile) {
-      return errorResponse('User profile not found', 404);
+      return errorResponse('User profile not found', 404, CORS_ORIGIN);
     }
 
     // If free user, return immediately
@@ -62,7 +77,7 @@ export async function handler(req: Request): Promise<Response> {
         plan_type: 'free',
         status: 'active',
         reminder_limit: 5,
-      });
+      }, CORS_ORIGIN);
     }
 
     // Get subscription details for premium user
@@ -82,7 +97,7 @@ export async function handler(req: Request): Promise<Response> {
         plan_type: 'free',
         status: 'active',
         reminder_limit: 5,
-      });
+      }, CORS_ORIGIN);
     }
 
     // Check for grace period expiry (should be handled by background job, but double-check)
@@ -129,7 +144,7 @@ export async function handler(req: Request): Promise<Response> {
           reminder_limit: 5,
           downgrade_reason: 'grace_period_expired',
           downgrade_date: gracePeriodEnd.toISOString(),
-        });
+        }, CORS_ORIGIN);
       }
     }
 
@@ -143,10 +158,10 @@ export async function handler(req: Request): Promise<Response> {
       grace_period_end_date: subscription.grace_period_end_date,
       cancellation_date: subscription.cancellation_date,
       reminder_limit: -1, // -1 means unlimited for premium
-    });
+    }, CORS_ORIGIN);
   } catch (error) {
     console.error('Subscription status fetch error:', error);
-    return errorResponse('Failed to fetch subscription status', 500);
+    return errorResponse('Failed to fetch subscription status', 500, CORS_ORIGIN);
   }
 }
 
@@ -173,22 +188,28 @@ function extractUserId(token: string): string | null {
 }
 
 /**
- * Return success response
+ * Return success response with CORS
  */
-function successResponse(data: any): Response {
+function successResponse(data: any, origin?: string): Response {
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
+    },
   });
 }
 
 /**
- * Return error response
+ * Return error response with CORS
  */
-function errorResponse(message: string, status: number): Response {
+function errorResponse(message: string, status: number, origin?: string): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
+    },
   });
 }
 
