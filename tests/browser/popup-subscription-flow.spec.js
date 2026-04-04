@@ -2,7 +2,7 @@ const { test, expect } = require("@playwright/test");
 const path = require("path");
 const { setupChromeMock } = require("./helpers/chrome-mock-setup");
 
-const popupUrl = `file://${path.resolve(__dirname, "../../src/popup/popup.html")}`;
+const { popupUrl } = require("./helpers/paths");
 
 test.describe("Popup Subscription Flow", () => {
     test("should render premium account settings immediately when cached premium", async ({

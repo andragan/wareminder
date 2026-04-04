@@ -31,3 +31,202 @@ Thumbs.db
 
 # Temp
 *.tmp
+tests/browser/test-user-data/ChromeFeatureState
+tests/browser/test-user-data/first_party_sets.db
+tests/browser/test-user-data/first_party_sets.db-journal
+tests/browser/test-user-data/Last Version
+tests/browser/test-user-data/Local State
+tests/browser/test-user-data/Variations
+tests/browser/test-user-data/Default/Account Web Data
+tests/browser/test-user-data/Default/Account Web Data-journal
+tests/browser/test-user-data/Default/Affiliation Database
+tests/browser/test-user-data/Default/Affiliation Database-journal
+tests/browser/test-user-data/Default/BookmarkMergedSurfaceOrdering
+tests/browser/test-user-data/Default/Cookies
+tests/browser/test-user-data/Default/Cookies-journal
+tests/browser/test-user-data/Default/DIPS
+tests/browser/test-user-data/Default/DIPS-wal
+tests/browser/test-user-data/Default/Favicons
+tests/browser/test-user-data/Default/Favicons-journal
+tests/browser/test-user-data/Default/heavy_ad_intervention_opt_out.db
+tests/browser/test-user-data/Default/heavy_ad_intervention_opt_out.db-journal
+tests/browser/test-user-data/Default/History
+tests/browser/test-user-data/Default/History-journal
+tests/browser/test-user-data/Default/LOCK
+tests/browser/test-user-data/Default/LOG
+tests/browser/test-user-data/Default/LOG.old
+tests/browser/test-user-data/Default/Login Data
+tests/browser/test-user-data/Default/Login Data For Account
+tests/browser/test-user-data/Default/Login Data For Account-journal
+tests/browser/test-user-data/Default/Login Data-journal
+tests/browser/test-user-data/Default/Network Action Predictor
+tests/browser/test-user-data/Default/Network Action Predictor-journal
+tests/browser/test-user-data/Default/Network Persistent State
+tests/browser/test-user-data/Default/Preferences
+tests/browser/test-user-data/Default/PreferredApps
+tests/browser/test-user-data/Default/README
+tests/browser/test-user-data/Default/Reporting and NEL
+tests/browser/test-user-data/Default/Reporting and NEL-journal
+tests/browser/test-user-data/Default/Safe Browsing Cookies
+tests/browser/test-user-data/Default/Safe Browsing Cookies-journal
+tests/browser/test-user-data/Default/SCT Auditing Pending Reports
+tests/browser/test-user-data/Default/Secure Preferences
+tests/browser/test-user-data/Default/ServerCertificate
+tests/browser/test-user-data/Default/ServerCertificate-journal
+tests/browser/test-user-data/Default/SharedStorage
+tests/browser/test-user-data/Default/Shortcuts
+tests/browser/test-user-data/Default/Shortcuts-journal
+tests/browser/test-user-data/Default/Top Sites
+tests/browser/test-user-data/Default/Top Sites-journal
+tests/browser/test-user-data/Default/TransportSecurity
+tests/browser/test-user-data/Default/Trust Tokens
+tests/browser/test-user-data/Default/Trust Tokens-journal
+tests/browser/test-user-data/Default/trusted_vault.pb
+tests/browser/test-user-data/Default/Web Data
+tests/browser/test-user-data/Default/Web Data-journal
+tests/browser/test-user-data/Default/AutofillAiModelCache/LOCK
+tests/browser/test-user-data/Default/AutofillAiModelCache/LOG
+tests/browser/test-user-data/Default/AutofillAiModelCache/LOG.old
+tests/browser/test-user-data/Default/AutofillStrikeDatabase/LOCK
+tests/browser/test-user-data/Default/AutofillStrikeDatabase/LOG
+tests/browser/test-user-data/Default/AutofillStrikeDatabase/LOG.old
+tests/browser/test-user-data/Default/BudgetDatabase/LOCK
+tests/browser/test-user-data/Default/BudgetDatabase/LOG
+tests/browser/test-user-data/Default/BudgetDatabase/LOG.old
+tests/browser/test-user-data/Default/Cache/Cache_Data/70d96111b776ba72_0
+tests/browser/test-user-data/Default/Cache/Cache_Data/index
+tests/browser/test-user-data/Default/Cache/Cache_Data/index-dir/the-real-index
+tests/browser/test-user-data/Default/Cache/No_Vary_Search/journal.baj
+tests/browser/test-user-data/Default/Cache/No_Vary_Search/snapshot.baf
+tests/browser/test-user-data/Default/ClientCertificates/LOCK
+tests/browser/test-user-data/Default/ClientCertificates/LOG
+tests/browser/test-user-data/Default/ClientCertificates/LOG.old
+tests/browser/test-user-data/Default/Code Cache/js/index
+tests/browser/test-user-data/Default/Code Cache/js/index-dir/the-real-index
+tests/browser/test-user-data/Default/Code Cache/wasm/index
+tests/browser/test-user-data/Default/Code Cache/wasm/index-dir/the-real-index
+tests/browser/test-user-data/Default/DawnGraphiteCache/data_0
+tests/browser/test-user-data/Default/DawnGraphiteCache/data_1
+tests/browser/test-user-data/Default/DawnGraphiteCache/data_2
+tests/browser/test-user-data/Default/DawnGraphiteCache/data_3
+tests/browser/test-user-data/Default/DawnGraphiteCache/index
+tests/browser/test-user-data/Default/DawnWebGPUCache/data_0
+tests/browser/test-user-data/Default/DawnWebGPUCache/data_1
+tests/browser/test-user-data/Default/DawnWebGPUCache/data_2
+tests/browser/test-user-data/Default/DawnWebGPUCache/data_3
+tests/browser/test-user-data/Default/DawnWebGPUCache/index
+tests/browser/test-user-data/Default/Extension Rules/CURRENT
+tests/browser/test-user-data/Default/Extension Rules/LOCK
+tests/browser/test-user-data/Default/Extension Rules/LOG
+tests/browser/test-user-data/Default/Extension Rules/MANIFEST-000001
+tests/browser/test-user-data/Default/Extension Scripts/CURRENT
+tests/browser/test-user-data/Default/Extension Scripts/LOCK
+tests/browser/test-user-data/Default/Extension Scripts/LOG
+tests/browser/test-user-data/Default/Extension Scripts/MANIFEST-000001
+tests/browser/test-user-data/Default/Extension State/CURRENT
+tests/browser/test-user-data/Default/Extension State/LOCK
+tests/browser/test-user-data/Default/Extension State/LOG
+tests/browser/test-user-data/Default/Extension State/LOG.old
+tests/browser/test-user-data/Default/Extension State/MANIFEST-000001
+tests/browser/test-user-data/Default/Feature Engagement Tracker/AvailabilityDB/LOCK
+tests/browser/test-user-data/Default/Feature Engagement Tracker/AvailabilityDB/LOG
+tests/browser/test-user-data/Default/Feature Engagement Tracker/AvailabilityDB/LOG.old
+tests/browser/test-user-data/Default/Feature Engagement Tracker/EventDB/LOCK
+tests/browser/test-user-data/Default/Feature Engagement Tracker/EventDB/LOG
+tests/browser/test-user-data/Default/Feature Engagement Tracker/EventDB/LOG.old
+tests/browser/test-user-data/Default/GCM Store/CURRENT
+tests/browser/test-user-data/Default/GCM Store/LOCK
+tests/browser/test-user-data/Default/GCM Store/LOG
+tests/browser/test-user-data/Default/GCM Store/LOG.old
+tests/browser/test-user-data/Default/GCM Store/MANIFEST-000001
+tests/browser/test-user-data/Default/GPUCache/data_0
+tests/browser/test-user-data/Default/GPUCache/data_1
+tests/browser/test-user-data/Default/GPUCache/data_2
+tests/browser/test-user-data/Default/GPUCache/data_3
+tests/browser/test-user-data/Default/GPUCache/index
+tests/browser/test-user-data/Default/Local Storage/leveldb/CURRENT
+tests/browser/test-user-data/Default/Local Storage/leveldb/LOCK
+tests/browser/test-user-data/Default/Local Storage/leveldb/LOG
+tests/browser/test-user-data/Default/Local Storage/leveldb/LOG.old
+tests/browser/test-user-data/Default/Local Storage/leveldb/MANIFEST-000001
+tests/browser/test-user-data/Default/PersistentOriginTrials/LOCK
+tests/browser/test-user-data/Default/PersistentOriginTrials/LOG
+tests/browser/test-user-data/Default/PersistentOriginTrials/LOG.old
+tests/browser/test-user-data/Default/Segmentation Platform/SegmentInfoDB/LOCK
+tests/browser/test-user-data/Default/Segmentation Platform/SegmentInfoDB/LOG
+tests/browser/test-user-data/Default/Segmentation Platform/SegmentInfoDB/LOG.old
+tests/browser/test-user-data/Default/Segmentation Platform/SignalDB/LOCK
+tests/browser/test-user-data/Default/Segmentation Platform/SignalDB/LOG
+tests/browser/test-user-data/Default/Segmentation Platform/SignalDB/LOG.old
+tests/browser/test-user-data/Default/Segmentation Platform/SignalStorageConfigDB/LOCK
+tests/browser/test-user-data/Default/Segmentation Platform/SignalStorageConfigDB/LOG
+tests/browser/test-user-data/Default/Segmentation Platform/SignalStorageConfigDB/LOG.old
+tests/browser/test-user-data/Default/Session Storage/CURRENT
+tests/browser/test-user-data/Default/Session Storage/LOCK
+tests/browser/test-user-data/Default/Session Storage/LOG
+tests/browser/test-user-data/Default/Session Storage/LOG.old
+tests/browser/test-user-data/Default/Session Storage/MANIFEST-000001
+tests/browser/test-user-data/Default/Sessions/Session_13419757997507302
+tests/browser/test-user-data/Default/Sessions/Session_13419758093838320
+tests/browser/test-user-data/Default/Sessions/Tabs_13419757997558801
+tests/browser/test-user-data/Default/Sessions/Tabs_13419758094346348
+tests/browser/test-user-data/Default/Shared Dictionary/db
+tests/browser/test-user-data/Default/Shared Dictionary/db-journal
+tests/browser/test-user-data/Default/Shared Dictionary/cache/index
+tests/browser/test-user-data/Default/Shared Dictionary/cache/index-dir/the-real-index
+tests/browser/test-user-data/Default/Site Characteristics Database/CURRENT
+tests/browser/test-user-data/Default/Site Characteristics Database/LOCK
+tests/browser/test-user-data/Default/Site Characteristics Database/LOG
+tests/browser/test-user-data/Default/Site Characteristics Database/LOG.old
+tests/browser/test-user-data/Default/Site Characteristics Database/MANIFEST-000001
+tests/browser/test-user-data/Default/Sync Data/LevelDB/CURRENT
+tests/browser/test-user-data/Default/Sync Data/LevelDB/LOCK
+tests/browser/test-user-data/Default/Sync Data/LevelDB/LOG
+tests/browser/test-user-data/Default/Sync Data/LevelDB/LOG.old
+tests/browser/test-user-data/Default/Sync Data/LevelDB/MANIFEST-000001
+tests/browser/test-user-data/Default/chrome_cart_db/LOCK
+tests/browser/test-user-data/Default/chrome_cart_db/LOG
+tests/browser/test-user-data/Default/chrome_cart_db/LOG.old
+tests/browser/test-user-data/Default/commerce_subscription_db/LOCK
+tests/browser/test-user-data/Default/commerce_subscription_db/LOG
+tests/browser/test-user-data/Default/commerce_subscription_db/LOG.old
+tests/browser/test-user-data/Default/discount_infos_db/LOCK
+tests/browser/test-user-data/Default/discount_infos_db/LOG
+tests/browser/test-user-data/Default/discount_infos_db/LOG.old
+tests/browser/test-user-data/Default/discounts_db/LOCK
+tests/browser/test-user-data/Default/discounts_db/LOG
+tests/browser/test-user-data/Default/discounts_db/LOG.old
+tests/browser/test-user-data/Default/parcel_tracking_db/LOCK
+tests/browser/test-user-data/Default/parcel_tracking_db/LOG
+tests/browser/test-user-data/Default/parcel_tracking_db/LOG.old
+tests/browser/test-user-data/Default/shared_proto_db/CURRENT
+tests/browser/test-user-data/Default/shared_proto_db/LOCK
+tests/browser/test-user-data/Default/shared_proto_db/LOG
+tests/browser/test-user-data/Default/shared_proto_db/LOG.old
+tests/browser/test-user-data/Default/shared_proto_db/MANIFEST-000001
+tests/browser/test-user-data/Default/shared_proto_db/metadata/CURRENT
+tests/browser/test-user-data/Default/shared_proto_db/metadata/LOCK
+tests/browser/test-user-data/Default/shared_proto_db/metadata/LOG
+tests/browser/test-user-data/Default/shared_proto_db/metadata/LOG.old
+tests/browser/test-user-data/Default/shared_proto_db/metadata/MANIFEST-000001
+tests/browser/test-user-data/GrShaderCache/data_0
+tests/browser/test-user-data/GrShaderCache/data_1
+tests/browser/test-user-data/GrShaderCache/data_2
+tests/browser/test-user-data/GrShaderCache/data_3
+tests/browser/test-user-data/GrShaderCache/index
+tests/browser/test-user-data/GraphiteDawnCache/data_0
+tests/browser/test-user-data/GraphiteDawnCache/data_1
+tests/browser/test-user-data/GraphiteDawnCache/data_2
+tests/browser/test-user-data/GraphiteDawnCache/data_3
+tests/browser/test-user-data/GraphiteDawnCache/f_000001
+tests/browser/test-user-data/GraphiteDawnCache/f_000002
+tests/browser/test-user-data/GraphiteDawnCache/index
+tests/browser/test-user-data/ShaderCache/data_0
+tests/browser/test-user-data/ShaderCache/data_1
+tests/browser/test-user-data/ShaderCache/data_2
+tests/browser/test-user-data/ShaderCache/data_3
+tests/browser/test-user-data/ShaderCache/index
+tests/browser/test-user-data/component_crx_cache/metadata.json
+tests/browser/test-user-data/extensions_crx_cache/metadata.json
+tests/browser/test-user-data/segmentation_platform/ukm_db
+tests/browser/test-user-data/segmentation_platform/ukm_db-wal
