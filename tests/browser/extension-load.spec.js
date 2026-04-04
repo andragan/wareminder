@@ -41,9 +41,8 @@ test.describe("WAReminder Extension Validation", () => {
         await test.step("Iterate over all messages", async () => {
             for (const [keyName, messageObj] of Object.entries(messages)) {
                 await test.step(`Check message: ${keyName}`, async () => {
-                    if (typeof messageObj !== "object" || !messageObj.message) {
-                        return;
-                    }
+                    expect(typeof messageObj, `Message ${keyName} should be an object`).toBe("object");
+                    expect(messageObj.message, `Message ${keyName} should have a 'message' property`).toBeDefined();
 
                     const message = messageObj.message;
                     let referencedPlaceholders;
