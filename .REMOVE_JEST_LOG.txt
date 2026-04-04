@@ -1,0 +1,1 @@
+You can now delete test-output.txt and any other Jest-related log files. They are no longer needed.

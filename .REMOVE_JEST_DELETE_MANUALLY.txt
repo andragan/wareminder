@@ -1,0 +1,6 @@
+Please manually delete the following files, as they are no longer needed:
+- jest.setup.js
+- test-output.txt
+- test-run-2.txt
+
+These are Jest-related and safe to remove.

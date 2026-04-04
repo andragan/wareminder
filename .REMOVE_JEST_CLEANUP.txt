@@ -1,0 +1,1 @@
+Jest has been removed from package.json and related scripts/configs. Jest config files and logs can be deleted if not needed.
