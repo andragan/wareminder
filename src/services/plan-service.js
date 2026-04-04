@@ -10,6 +10,18 @@ import { REMINDER_STATUS, PLAN_LIMITS, SUBSCRIPTION_PLANS } from '../lib/constan
 import * as StorageService from './storage-service.js';
 
 /**
+ * Detects if the user has premium status based on subscription and user plan.
+ * Subscription status is the primary source of truth, with user plan as fallback.
+ * @param {object} [subscriptionStatus] - Current subscription status from storage
+ * @param {object} userPlan - User plan from storage
+ * @returns {boolean}
+ */
+function detectPremiumStatus(subscriptionStatus, userPlan) {
+  return subscriptionStatus?.planType === SUBSCRIPTION_PLANS.PREMIUM ||
+         userPlan.planType === SUBSCRIPTION_PLANS.PREMIUM;
+}
+
+/**
  * Checks whether the user can create a new reminder based on their plan limit.
  * @param {typeof StorageService} [storage] - Optional storage service override for testing
  * @returns {Promise<boolean>}
@@ -50,7 +62,7 @@ async function getPlanStatus(storage) {
   ).length;
 
   // Normalize premium detection: subscription status is primary source of truth
-  const isPremium = subscriptionStatus?.planType === SUBSCRIPTION_PLANS.PREMIUM || userPlan.planType === SUBSCRIPTION_PLANS.PREMIUM;
+  const isPremium = detectPremiumStatus(subscriptionStatus, userPlan);
   const planType = isPremium ? SUBSCRIPTION_PLANS.PREMIUM : SUBSCRIPTION_PLANS.FREE;
   
   // Determine active reminder limit based on premium status

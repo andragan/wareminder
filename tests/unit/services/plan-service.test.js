@@ -11,6 +11,7 @@ describe('PlanService', () => {
     mockStorage = {
       getReminders: jest.fn(),
       getUserPlan: jest.fn(),
+      getSubscriptionStatus: jest.fn(),
     };
   });
 
@@ -87,10 +88,12 @@ describe('PlanService', () => {
         planType: 'free',
         activeReminderLimit: 5,
       });
+      mockStorage.getSubscriptionStatus.mockResolvedValue(null);
 
       const status = await PlanService.getPlanStatus(mockStorage);
       expect(status).toEqual({
         planType: 'free',
+        isPremium: false,
         activeReminderLimit: 5,
         currentPendingCount: 2,
         canCreateReminder: true,
@@ -107,6 +110,7 @@ describe('PlanService', () => {
         planType: 'free',
         activeReminderLimit: 5,
       });
+      mockStorage.getSubscriptionStatus.mockResolvedValue(null);
 
       const status = await PlanService.getPlanStatus(mockStorage);
       expect(status.canCreateReminder).toBe(false);
