@@ -72,9 +72,22 @@ const SUBSCRIPTION_PLANS = Object.freeze({
 const SUBSCRIPTION_STATUS = Object.freeze({
     ACTIVE: "active",
     CANCELLED: "cancelled",
+    CANCELLED_PENDING: "cancelled_pending",
     GRACE_PERIOD: "grace_period",
+    PAST_DUE: "past_due",
     TRIAL: "trial",
+    DOWNGRADED: "downgraded",
 });
+
+/**
+ * Subscription statuses that indicate a stable, non-recovery state for non-premium users.
+ * When a non-premium user's status is NOT in this set the popup shows the auth recovery hint.
+ * @readonly
+ */
+const STANDARD_SUBSCRIPTION_STATUSES = Object.freeze([
+    SUBSCRIPTION_STATUS.ACTIVE,
+    SUBSCRIPTION_STATUS.CANCELLED_PENDING,
+]);
 
 /** @readonly */
 const SUBSCRIPTION_EVENT_TYPES = Object.freeze({
@@ -162,7 +175,8 @@ export {
     SUBSCRIPTION_STATUS,
     SUBSCRIPTION_EVENT_TYPES,
     SUPABASE_CONFIG,
-    PAYMENT_PROVIDER
+    PAYMENT_PROVIDER,
+    STANDARD_SUBSCRIPTION_STATUSES
 };
 
 // Export for both module and non-module contexts
@@ -187,5 +201,6 @@ if (typeof module !== "undefined" && module.exports) {
         SUBSCRIPTION_STATUS,
         SUBSCRIPTION_EVENT_TYPES,
         SUPABASE_CONFIG,
+        STANDARD_SUBSCRIPTION_STATUSES,
     };
 }

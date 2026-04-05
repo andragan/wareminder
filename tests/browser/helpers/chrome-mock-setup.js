@@ -16,6 +16,7 @@
  * @param {string} options.permissionLevel - Notification permission level (default: 'granted')
  * @param {string} options.prefix - Log prefix for console messages (default: '[CHROME-MOCK]')
  * @param {string} options.silentRefreshOutcome - Outcome of silent refresh (default: 'refreshed') - can be 'refreshed', 'auth_required', 'sync_failed'
+ * @param {string} options.subscriptionStatus - Raw subscription status returned by GET_PLAN_STATUS (default: 'active')
  * @param {boolean} options.interactiveAuthSucceeds - Whether interactive auth recovery succeeds (default: true)
  */
 async function setupChromeMock(
@@ -31,6 +32,7 @@ async function setupChromeMock(
         prefix = "[CHROME-MOCK]",
         silentRefreshOutcome = "refreshed",
         interactiveAuthSucceeds = true,
+        subscriptionStatus = "active",
     } = options;
 
     await page.addInitScript(
@@ -44,6 +46,7 @@ async function setupChromeMock(
                 prefix,
                 silentRefreshOutcome,
                 interactiveAuthSucceeds,
+                subscriptionStatus,
             } = config;
 
             // Initialize flow state
@@ -90,13 +93,14 @@ async function setupChromeMock(
                             console.log(
                                 `${prefix} Responding with ${
                                     isPremium ? "premium" : "free"
-                                } plan status`
+                                } plan status, subscriptionStatus: ${subscriptionStatus}`
                             );
                             callback({
                                 success: true,
                                 data: {
                                     isPremium,
                                     plan_type: isPremium ? "premium" : "free",
+                                    subscriptionStatus,
                                 },
                             });
                         } else if (
@@ -214,9 +218,9 @@ async function setupChromeMock(
                     local: {
                         get: () => Promise.resolve({
                             subscriptionStatus: {
-                                userId: "test-user-123", // Include userId to avoid interactive auth in test
-                                plan_type: isPremium ? "premium" : "free",
-                                status: "active",
+                                userId: "test-user-123",
+                                planType: isPremium ? "premium" : "free",
+                                status: subscriptionStatus,
                             },
                         }),
                         set: () => Promise.resolve(),
@@ -247,6 +251,7 @@ async function setupChromeMock(
             prefix,
             silentRefreshOutcome,
             interactiveAuthSucceeds,
+            subscriptionStatus,
         }
     );
 }

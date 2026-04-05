@@ -46,28 +46,48 @@ Then the popup preserves the initial rendered state
 And does NOT show a loading failure replacing normal content
 ```
 
-### Requirement: Popup SHALL show auth recovery only for likely premium users
+### Requirement: Popup SHALL show auth recovery hint for users with a non-standard subscription state
 
-The popup SHALL display an auth recovery hint only when no valid Supabase session is available and cached data indicates the user is likely entitled to premium access.
+The popup SHALL display an auth recovery hint when the user is not on the premium plan AND their cached subscription status is not `active` or `cancelled_pending`. The hint is shown regardless of whether the user was previously premium, removing the "likely premium" prerequisite.
 
-**Change:** Auth recovery now means session restore/refresh failed and the user must complete an interactive Supabase sign-in again.
+**Rationale:** Any non-premium user with an unusual subscription state (e.g. grace period, past due, downgraded, no subscription, unknown) benefits from being prompted to re-authenticate so their true plan can be resolved. This is broader than the prior "likely premium" guard and prevents silently leaving users stuck in an ambiguous state without guidance.
 
-#### Scenario: Cached premium plus missing session shows recovery hint
+**Change:** The condition to display the hint no longer checks for cached premium evidence. It triggers whenever `planType !== "premium"` AND `status NOT IN ("active", "cancelled_pending")`.
+
+#### Scenario: Non-premium user with non-standard status sees recovery hint
 
 ```gherkin
-Given cached subscriptionStatus indicates premium access
-And no valid Supabase session can be restored silently
-When the popup evaluates auth state
-Then the popup shows a sign-in recovery hint instead of the upgrade prompt
+Given cached subscriptionStatus has planType = "free" and status = "grace_period"
+When the popup evaluates account state
+Then the popup shows the auth recovery hint
+And does NOT show the upgrade prompt
 ```
 
-#### Scenario: Free user missing session shows no recovery hint
+#### Scenario: Non-premium user with undefined status sees recovery hint
 
 ```gherkin
-Given no cached premium evidence exists
-And no valid Supabase session can be restored silently
-When the popup evaluates auth state
-Then the popup continues to show normal free-tier UI without a sign-in prompt
+Given no cached subscriptionStatus exists (status is undefined)
+When the popup evaluates account state
+Then the popup shows the auth recovery hint
+And does NOT show the upgrade prompt
+```
+
+#### Scenario: Free user with active status sees normal free-tier UI
+
+```gherkin
+Given cached subscriptionStatus has planType = "free" and status = "active"
+When the popup evaluates account state
+Then the popup shows normal free-tier UI
+And does NOT show the auth recovery hint
+```
+
+#### Scenario: Free user with cancelled_pending status sees normal free-tier UI
+
+```gherkin
+Given cached subscriptionStatus has planType = "free" and status = "cancelled_pending"
+When the popup evaluates account state
+Then the popup shows normal free-tier UI
+And does NOT show the auth recovery hint
 ```
 
 ### Requirement: Popup SHALL support interactive auth recovery from the hint
@@ -79,7 +99,7 @@ The popup SHALL provide a recovery action that triggers interactive Supabase sig
 #### Scenario: Interactive recovery restores premium account state
 
 ```gherkin
-Given a likely premium user clicks the recovery sign-in button
+Given a user sees the auth recovery hint and clicks the recovery sign-in button
 When the interactive Supabase sign-in flow succeeds
 And get-subscription-status returns a premium subscription
 Then the popup updates to verified premium UI
@@ -89,16 +109,16 @@ And the recovery hint is hidden
 #### Scenario: Interactive recovery failure leaves retryable hint
 
 ```gherkin
-Given a likely premium user clicks the recovery sign-in button
+Given a user sees the auth recovery hint and clicks the recovery sign-in button
 When the interactive Supabase sign-in flow fails or is cancelled
 Then the popup keeps the recovery hint visible and available for another attempt
 ```
 
 ### Requirement: Popup SHALL apply a single account-state precedence model
 
-The popup SHALL not present conflicting premium, free-tier upgrade, and auth-recovery states at the same time. Verified premium state MUST take precedence over upgrade messaging, and auth recovery MUST take precedence over upgrade messaging when premium access is likely but unverified.
+The popup SHALL not present conflicting premium, free-tier upgrade, and auth-recovery states at the same time. Verified premium state MUST take precedence over upgrade messaging, and auth recovery MUST take precedence over upgrade messaging when subscription state is non-standard.
 
-**Change:** No behavioral change — this requirement is preserved as-is. The underlying data source changes to Supabase-session-backed subscription refreshes.
+**Change:** Auth recovery now takes precedence over the upgrade prompt for any non-premium user with a non-standard subscription status (not just "likely premium" users).
 
 #### Scenario: Verified premium suppresses upgrade prompt
 
@@ -110,13 +130,13 @@ Then the popup shows premium account UI
 And does NOT show the upgrade prompt
 ```
 
-#### Scenario: Recovery state suppresses upgrade prompt for likely premium users
+#### Scenario: Auth recovery suppresses upgrade prompt for non-standard subscription state
 
 ```gherkin
-Given the popup cannot verify a likely premium user because no valid Supabase session could be restored silently
+Given the user is not premium and cached subscription status is not "active" or "cancelled_pending"
 When the popup renders
 Then the popup shows the auth recovery hint
-And does NOT show the upgrade prompt until verification succeeds or premium evidence disappears
+And does NOT show the upgrade prompt until auth recovery succeeds and status normalises
 ```
 
 ### Requirement: Popup SHALL prompt sign-in for unauthenticated users

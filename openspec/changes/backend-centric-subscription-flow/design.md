@@ -137,7 +137,16 @@ WAReminder is a Chrome MV3 extension with a Supabase backend (PostgreSQL + edge 
 7. **Remove legacy custom-auth paths** — Delete Google-token validation paths and dead hybrid auth logic
 8. **Validate end-to-end** — Run Playwright coverage for sign-in, session restore/refresh, premium state, and checkout/subscription flows
 
-## Open Questions
+## Resolved Questions
 
-- Should `user_profiles` survive as a thin app-profile table, or should app-specific user metadata move into `auth.users` metadata where practical?
-- How strict should reminder creation be during backend outages: free-tier fallback only, or hard-fail until the backend can verify entitlement?
+- **Should `user_profiles` survive as a thin app-profile table, or should app-specific user metadata move into `auth.users` metadata where practical?**
+  → **Resolved:** Remove the `user_profiles` table entirely. App-specific user metadata SHALL be stored in `auth.users` user/app metadata where practical. Subscriptions reference `auth.users.id` directly.
+
+- **How strict should reminder creation be during backend outages: free-tier fallback only, or hard-fail until the backend can verify entitlement?**
+  → **Resolved:** Apply free-tier fallback. When the backend is unreachable the extension caps behavior to the free-tier limit (5 active reminders). Premium-unlimited access is never granted from unverifiable local state alone.
+
+- **Auth recovery hint — should it appear only for "likely premium" users?**
+  → **Resolved:** No. The hint SHALL display for any user whose plan is not premium AND whose cached subscription status is not `active` or `cancelled_pending`. The "likely premium" prerequisite is removed.
+
+- **Legacy data migration — do existing records need to be carried forward?**
+  → **Resolved:** No. The project is not yet released; all existing records are test data. Migrations may cleanly drop and recreate schema without backfilling legacy rows.

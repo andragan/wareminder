@@ -47,7 +47,7 @@ async function canCreateReminder(storage) {
  * Returns the user's plan status with current counts.
  * Normalized from cached subscriptionStatus (primary) and falls back to userPlan (secondary).
  * @param {typeof StorageService} [storage] - Optional storage service override for testing
- * @returns {Promise<{ planType: string, isPremium: boolean, activeReminderLimit: number, currentPendingCount: number, canCreateReminder: boolean }>}
+ * @returns {Promise<{ planType: string, isPremium: boolean, activeReminderLimit: number, currentPendingCount: number, canCreateReminder: boolean, subscriptionStatus: string|null }>}
  */
 async function getPlanStatus(storage) {
   const svc = storage || StorageService;
@@ -80,6 +80,7 @@ async function getPlanStatus(storage) {
     activeReminderLimit,
     currentPendingCount,
     canCreateReminder: canCreate,
+    subscriptionStatus: subscriptionStatus?.status ?? null,
   };
 }
 
