@@ -145,10 +145,9 @@ export async function downgradeToFree(userId, reason = 'subscription_expired') {
     console.info(`Downgrading user ${userId} to free plan`, { reason });
 
     // In production, this would:
-    // 1. Call backend to update user_profiles.plan_type = 'free'
-    // 2. Update subscriptions.status = 'downgraded'
-    // 3. Clear any grace period dates
-    // 4. Log event to subscription_events table
+    // 1. Update subscriptions.status = 'downgraded'
+    // 2. Clear any grace period dates
+    // 3. Log event to subscription_events table
     // For now, just log the action
     return true;
   } catch (error) {

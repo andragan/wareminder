@@ -11,6 +11,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { jwtDecode } from 'https://esm.sh/jwt-decode@4.0.0';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') || '',
@@ -44,47 +45,33 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    // Verify auth token is present
+    // Authenticate via Supabase JWT
     const token = extractToken(req.headers.get('authorization') || '');
     if (!token) {
       return errorResponse('Missing or invalid authorization token', 401);
     }
 
-    // Resolve user from Google OAuth token (look up by email)
-    const googleEmail = await resolveEmailFromGoogleToken(token);
-    if (!googleEmail) {
+    const userId = extractUserId(token);
+    if (!userId) {
+      return errorResponse('Invalid token - missing user ID', 401);
+    }
+
+    // Resolve user email from auth.users via service role
+    const { data: authUser, error: userError } = await supabase.auth.admin.getUserById(userId);
+    if (userError || !authUser?.user) {
       return errorResponse('Could not resolve user from token', 401);
     }
-
-    // Get or create user profile by email (supports Google OAuth where sub != Supabase UUID)
-    let { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('id, email')
-      .eq('email', googleEmail)
-      .single();
-
-    if (!profile) {
-      // No profile yet — auto-create one for this Google OAuth user
-      const { data: created, error: createError } = await supabase
-        .from('user_profiles')
-        .insert({ id: crypto.randomUUID(), email: googleEmail, plan_type: 'free' })
-        .select('id, email')
-        .single();
-
-      if (!created || createError) {
-        return errorResponse(`Failed to create user profile | email=${googleEmail} | error=${JSON.stringify(createError)}`, 500);
-      }
-      profile = created;
+    const userEmail = authUser.user.email;
+    if (!userEmail) {
+      return errorResponse('User account has no email address', 422);
     }
-
-    const userId = profile.id;
 
     // Create Xendit invoice
     const invoiceData = {
       external_id: `wareminder_${userId}_${Date.now()}`,
       amount: XENDIT_AMOUNT_IDR,
-      payer_email: profile.email,
-      payer_name: profile.email,
+      payer_email: userEmail,
+      payer_name: userEmail,
       description: 'WAReminder Premium Monthly Subscription',
       invoice_duration: 86400,  // 24 hours to pay
       currency: XENDIT_CURRENCY,
@@ -117,7 +104,7 @@ export async function handler(req: Request): Promise<Response> {
       .from('subscriptions')
       .insert({
         user_id: userId,
-        xendit_customer_id: profile.email,
+        xendit_customer_id: userEmail,
         xendit_invoice_id: invoiceResponse.id,
         plan_type: 'premium',
         status: 'trial',
@@ -188,48 +175,28 @@ async function createXenditInvoice(invoiceData: any): Promise<any> {
 }
 
 /**
- * Resolve email from a Google OAuth access token via Google userinfo endpoint.
- * Returns null if the token is invalid or the request fails.
- */
-async function resolveEmailFromGoogleToken(token: string): Promise<string | null> {
-  try {
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return null;
-    const info = await res.json();
-    return info.email || null;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Extract Bearer token from Authorization header
  */
 function extractToken(authHeader: string): string | null {
   if (!authHeader.startsWith('Bearer ')) {
     return null;
   }
-  return authHeader.substring(7); // Remove 'Bearer ' prefix
+  return authHeader.substring(7);
+}
+
+/** Minimal JWT payload shape for Supabase tokens */
+interface SupabaseJwtPayload {
+  sub?: string;
+  [key: string]: unknown;
 }
 
 /**
- * Extract user ID from JWT token
+ * Extract user ID (sub claim) from Supabase JWT
  */
 function extractUserId(token: string): string | null {
   try {
-    // Decode JWT payload (basic decoding without verification, server already verified it)
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return null;
-    }
-    
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-    );
-    
-    return payload.sub || null; // Supabase uses 'sub' claim for user ID
+    const decoded = jwtDecode<SupabaseJwtPayload>(token);
+    return decoded.sub || null;
   } catch {
     return null;
   }

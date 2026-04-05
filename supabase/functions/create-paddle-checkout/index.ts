@@ -2,14 +2,16 @@
 /**
  * Create Paddle Checkout
  * Creates a Paddle Billing transaction and returns the hosted checkout URL.
+ * Uses Supabase JWT auth — user_profiles has been removed; identity anchored to auth.users.
  *
  * Request: POST /functions/v1/create-paddle-checkout
- * Auth: Requires valid Google OAuth Bearer token
+ * Auth: Requires valid Supabase JWT (Bearer token issued by Supabase Auth)
  *
  * Response: { checkoutUrl: string }
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { jwtDecode } from 'https://esm.sh/jwt-decode@4.0.0';
 
 const supabase = createClient(
     Deno.env.get('SUPABASE_URL') || '',
@@ -25,9 +27,6 @@ const PADDLE_API_BASE = Deno.env.get('PADDLE_ENVIRONMENT') === 'production'
     : 'https://sandbox-api.paddle.com';
 
 // Hosted checkout base URL from Paddle dashboard (Checkout > Hosted Checkout).
-// For Chrome extensions (no domain), we use Paddle's fully-hosted checkout page
-// instead of the transaction checkout.url, which requires Paddle.js on your domain.
-// Create one at: Paddle sandbox > Checkout > Hosted checkout > New hosted checkout
 const PADDLE_HOSTED_CHECKOUT_URL = Deno.env.get('PADDLE_HOSTED_CHECKOUT_URL') || '';
 
 const CORS_HEADERS = {
@@ -49,41 +48,29 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     try {
+        // Authenticate via Supabase JWT
         const token = extractToken(req.headers.get('authorization') || '');
         if (!token) {
             return errorResponse('Missing or invalid authorization token', 401);
         }
 
-        // Resolve user email from Google OAuth token
-        const googleEmail = await resolveEmailFromGoogleToken(token);
-        if (!googleEmail) {
+        const userId = extractUserId(token);
+        if (!userId) {
+            return errorResponse('Invalid token - missing user ID', 401);
+        }
+
+        // Resolve user email from auth.users via service role
+        const { data: authUser, error: userError } = await supabase.auth.admin.getUserById(userId);
+        if (userError || !authUser?.user) {
             return errorResponse('Could not resolve user from token', 401);
         }
-
-        // Look up or create user profile
-        let { data: profile } = await supabase
-            .from('user_profiles')
-            .select('id, email')
-            .eq('email', googleEmail)
-            .single();
-
-        if (!profile) {
-            const { data: created, error: createError } = await supabase
-                .from('user_profiles')
-                .insert({ id: crypto.randomUUID(), email: googleEmail, plan_type: 'free' })
-                .select('id, email')
-                .single();
-
-            if (!created || createError) {
-                return errorResponse(
-                    `Failed to create user profile | email=${googleEmail} | error=${JSON.stringify(createError)}`,
-                    500,
-                );
-            }
-            profile = created;
+        const userEmail = authUser.user.email;
+        if (!userEmail) {
+            return errorResponse('User account has no email address', 422);
         }
 
-        // Create Paddle transaction (generates a hosted checkout URL)
+        // Create Paddle transaction (generates a hosted checkout URL).
+        // custom_data.user_id is auth.users.id — the webhook uses this to key the subscription.
         const paddleResponse = await fetch(`${PADDLE_API_BASE}/transactions`, {
             method: 'POST',
             headers: {
@@ -92,8 +79,8 @@ export async function handler(req: Request): Promise<Response> {
             },
             body: JSON.stringify({
                 items: [{ price_id: PADDLE_PRICE_ID, quantity: 1 }],
-                customer: { email: googleEmail },
-                custom_data: { user_id: profile.id },
+                customer: { email: userEmail },
+                custom_data: { user_id: userId },
             }),
         });
 
@@ -114,12 +101,9 @@ export async function handler(req: Request): Promise<Response> {
             return errorResponse('PADDLE_HOSTED_CHECKOUT_URL is not configured', 500);
         }
 
-        // Append transaction_id so Paddle's hosted checkout page uses the
-        // pre-created transaction (which carries our custom_data.user_id for
-        // the webhook to activate the subscription).
-        // After payment Paddle redirects to the URL configured in the hosted
-        // checkout dashboard — set to https://customer-portal.paddle.com/
-        // where customers can log in with their email to manage their account.
+        // Append transaction_id so Paddle's hosted checkout page uses the pre-created
+        // transaction (which carries our custom_data.user_id for the webhook to activate
+        // the subscription).
         const checkoutUrl = `${PADDLE_HOSTED_CHECKOUT_URL}?transaction_id=${txnId}`;
 
         return successResponse({ checkoutUrl });
@@ -130,27 +114,29 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 /**
- * Resolve email from a Google OAuth access token via Google userinfo endpoint.
- */
-async function resolveEmailFromGoogleToken(token: string): Promise<string | null> {
-    try {
-        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) return null;
-        const info = await res.json();
-        return info.email || null;
-    } catch {
-        return null;
-    }
-}
-
-/**
  * Extract Bearer token from Authorization header.
  */
 function extractToken(authHeader: string): string | null {
     if (!authHeader.startsWith('Bearer ')) return null;
     return authHeader.substring(7);
+}
+
+/** Minimal JWT payload shape for Supabase tokens */
+interface SupabaseJwtPayload {
+    sub?: string;
+    [key: string]: unknown;
+}
+
+/**
+ * Extract user ID (sub claim) from Supabase JWT.
+ */
+function extractUserId(token: string): string | null {
+    try {
+        const decoded = jwtDecode<SupabaseJwtPayload>(token);
+        return decoded.sub || null;
+    } catch {
+        return null;
+    }
 }
 
 function successResponse(data: unknown): Response {

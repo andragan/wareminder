@@ -6,13 +6,12 @@
 
 ## 2. Database Migration to Auth-Owned Identity
 
-- [ ] 2.1 Create migration(s) to introduce a safe mapping from legacy `user_profiles` rows to `auth.users`
-- [ ] 2.2 Backfill `auth.users` for existing customers and record the mapping needed for cutover
-- [ ] 2.3 Backfill `subscriptions` and other user-scoped tables to the authenticated user key
-- [ ] 2.4 Restore the final schema so user-scoped app data is keyed from or directly linked to `auth.users.id`
-- [ ] 2.5 Drop `plan_type` from `user_profiles` after reads are fully migrated to `subscriptions`
-- [ ] 2.6 Rework RLS policies so authenticated user-scoped access is meaningful again
-- [ ] 2.7 Clean up legacy Stripe-only columns and event remnants while touching the schema
+> **Note:** The project is not yet released. All existing records are test data. No backfill is required.
+
+- [x] 2.1 Drop `user_profiles` table; update `subscriptions.user_id` FK to reference `auth.users(id)` directly
+- [x] 2.2 Expand `subscriptions.status` check constraint to include `cancelled_pending` and `past_due`
+- [ ] 2.3 Rework RLS policies so authenticated user-scoped access is meaningful (subscriptions keyed to `auth.users.id`)
+- [ ] 2.4 Clean up legacy Stripe-only columns and event remnants while touching the schema
 
 ## 3. Backend: JWT-Only User-Facing Edge Functions
 
@@ -38,12 +37,12 @@
 - [ ] 5.2 Update `storage-service.js` cache schema to track session-backed subscription state and refresh timestamps
 - [ ] 5.3 Update popup initialization to restore session state first, then refresh subscription state in the background
 - [ ] 5.4 Replace legacy auth-recovery behavior with session refresh or interactive Supabase sign-in
-- [ ] 5.5 Preserve the popup account-state precedence model (verified premium > recovery/sign-in > upgrade prompt)
+- [x] 5.5 Update popup account-state precedence model: auth recovery hint shows for any non-premium user with a non-standard subscription status (not `active` or `cancelled_pending`), not just "likely premium" users
 
 ## 6. Extension: Backend Plan Enforcement
 
 - [ ] 6.1 Call `check-reminder-limit` before reminder creation using the authenticated Supabase session
-- [ ] 6.2 Update reminder creation flows to use conservative fallback behavior when backend verification is unavailable
+- [x] 6.2 Update reminder creation flows to use free-tier fallback behavior when backend verification is unavailable
 - [ ] 6.3 Remove or refactor local-only premium enforcement helpers that can bypass backend entitlement checks
 
 ## 7. Payments and Subscription Lifecycle
@@ -60,8 +59,9 @@
 
 ## 9. Testing
 
-- [ ] 9.1 Write Playwright tests for Supabase sign-in, callback handling, and session restore
-- [ ] 9.2 Write Playwright tests for access-token expiry and refresh-token-based session recovery
-- [ ] 9.3 Write Playwright tests for popup premium-state changes driven by JWT-backed subscription refreshes
-- [ ] 9.4 Write Playwright tests for backend plan enforcement under authenticated, unauthenticated, and backend-unavailable states
-- [ ] 9.5 Update checkout / customer-portal tests to reflect Supabase JWT auth and `auth.users.id`-based identity linkage
+> **Note:** Tests SHALL use Playwright for scenarios that can be meaningfully exercised against real UI and Chrome extension behavior. For scenarios that cannot be driven through Playwright (e.g. Supabase Auth OAuth redirect, webhook processing), skip automated tests and document a manual testing plan instead.
+
+- [ ] 9.1 Write Playwright tests for popup premium-state changes driven by cached subscription status (or document manual plan if not feasible)
+- [ ] 9.2 Write Playwright tests for auth recovery hint display conditions: non-premium user with non-standard status vs. normal free user
+- [ ] 9.3 Write Playwright tests for backend plan enforcement under authenticated, unauthenticated, and backend-unavailable states (or document manual plan if not feasible)
+- [ ] 9.4 Document manual testing plan for: Supabase sign-in flow, session restore/refresh, checkout with Supabase JWT, webhook subscription activation

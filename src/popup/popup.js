@@ -7,7 +7,7 @@
  * @module popup
  */
 
-import { MESSAGE_TYPES } from "../lib/constants.js";
+import { MESSAGE_TYPES, STANDARD_SUBSCRIPTION_STATUSES } from "../lib/constants.js";
 
 // Initialize popup dashboard
 function initializePopupDashboard() {
@@ -67,7 +67,6 @@ function initializePopupDashboard() {
     let currentPage = 1;
     let pendingDeleteId = null;
     let upgradePromptDismissed = false;
-    let lastSilentRefreshOutcome = null; // Track silent refresh outcome for auth recovery hint
 
     // --- Init ---
     async function init() {
@@ -205,7 +204,7 @@ function initializePopupDashboard() {
     /**
      * Triggers silent background subscription refresh.
      * Popup initially renders from cached state, this refreshes in background.
-     * Captures the outcome to determine if auth recovery is needed.
+     * After the refresh updates storage, the storage listener re-renders account UI.
      * @returns {Promise<void>}
      */
     async function triggerSilentSubscriptionRefresh() {
@@ -214,14 +213,12 @@ function initializePopupDashboard() {
                 type: MESSAGE_TYPES.SILENT_REFRESH_SUBSCRIPTION,
             });
             
-            // Capture outcome for auth recovery hint decision
             if (response.outcome) {
-                lastSilentRefreshOutcome = response.outcome;
                 console.log("[popup.js] Silent subscription refresh outcome:", response.outcome);
 
-                // Re-run the limit/auth recovery UI check immediately because some
-                // outcomes (such as auth_required) do not update storage and therefore
-                // will not trigger the storage listener-based refresh path.
+                // Re-run the limit/auth recovery UI check immediately — storage updates
+                // trigger the storage listener, but a failed refresh (no storage write)
+                // still needs the UI to re-evaluate against the current cached state.
                 await checkLimitAndShowUpgradePrompt();
             }
         } catch (err) {
@@ -874,8 +871,12 @@ function initializePopupDashboard() {
     /**
      * Checks plan status and enforces state precedence:
      * 1. Verified premium -> show account settings
-     * 2. Likely premium but unverified -> show auth recovery hint
+     * 2. Non-premium with non-standard subscription status -> show auth recovery hint
      * 3. Free tier -> check limit and show upgrade prompt if needed
+     *
+     * "Non-standard" means the cached subscription status is not "active" or
+     * "cancelled_pending". This covers states such as grace_period, past_due,
+     * downgraded, trial-ended, or an absent status (null/undefined).
      */
     async function checkLimitAndShowUpgradePrompt() {
         try {
@@ -901,18 +902,21 @@ function initializePopupDashboard() {
                 return true;
             }
 
-            // 2. Likely premium but unverified (auth failed during silent refresh)
-            // Show recovery hint instead of upgrade prompt
-            if (lastSilentRefreshOutcome === 'auth_required') {
+            // 2. Non-premium with non-standard subscription status: show auth recovery hint.
+            // Standard statuses that need no recovery prompt: "active" (normal free user)
+            // and "cancelled_pending" (cancelled but still within billing period).
+            // Any other status — including null/undefined — is considered non-standard.
+            const subscriptionStatus = planData.subscriptionStatus;
+            if (!STANDARD_SUBSCRIPTION_STATUSES.includes(subscriptionStatus)) {
                 hidePremiumBadge();
                 hideAccountSettings();
                 hideUpgradePrompt();
                 showAuthRecoveryHint();
-                console.log("[popup.js] Showing auth recovery hint (auth_required outcome)");
+                console.log("[popup.js] Showing auth recovery hint (non-standard subscription status:", subscriptionStatus, ")");
                 return true;
             }
 
-            // 3. Free tier - check reminder limit
+            // 3. Free tier with standard status - check reminder limit
             hidePremiumBadge();
             hideAuthRecoveryHint();
             
