@@ -218,10 +218,11 @@ function initializePopupDashboard() {
             if (response.outcome) {
                 lastSilentRefreshOutcome = response.outcome;
                 console.log("[popup.js] Silent subscription refresh outcome:", response.outcome);
-                
-                // If refresh failed with auth_required but user has cached premium status,
-                // checkLimitAndShowUpgradePrompt will show auth recovery hint
-                // (storage listener will trigger the re-render)
+
+                // Re-run the limit/auth recovery UI check immediately because some
+                // outcomes (such as auth_required) do not update storage and therefore
+                // will not trigger the storage listener-based refresh path.
+                await checkLimitAndShowUpgradePrompt();
             }
         } catch (err) {
             console.warn("[popup.js] Failed to trigger silent refresh:", err);

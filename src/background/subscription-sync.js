@@ -8,33 +8,34 @@
  * @module subscription-sync
  */
 
-import { SUBSCRIPTION_CONSTANTS, MESSAGE_TYPES } from '../lib/constants.js';
-import * as accountService from '../services/account-service.js';
+import { SUBSCRIPTION_CONSTANTS, MESSAGE_TYPES } from "../lib/constants.js";
+import * as accountService from "../services/account-service.js";
 
-const SYNC_INTERVAL_MS = SUBSCRIPTION_CONSTANTS.SYNC_INTERVAL_HOURS * 60 * 60 * 1000; // 24 hours
-const SYNC_ALARM_NAME = 'subscription-sync';
+const SYNC_INTERVAL_MS =
+    SUBSCRIPTION_CONSTANTS.SYNC_INTERVAL_HOURS * 60 * 60 * 1000; // 24 hours
+const SYNC_ALARM_NAME = "subscription-sync";
 
 /**
  * Initialize subscription sync
  * Called from service worker on extension startup
  */
 export async function initialize() {
-  console.log('Initializing subscription sync');
+    console.log("Initializing subscription sync");
 
-  // Perform initial sync
-  await performSync();
+    // Perform initial sync
+    await performSync();
 
-  // Set up periodic sync alarm
-  chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === SYNC_ALARM_NAME) {
-      performSync();
-    }
-  });
+    // Set up periodic sync alarm
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === SYNC_ALARM_NAME) {
+            performSync();
+        }
+    });
 
-  // Create recurring alarm for sync
-  chrome.alarms.create(SYNC_ALARM_NAME, {
-    periodInMinutes: SUBSCRIPTION_CONSTANTS.SYNC_INTERVAL_HOURS * 60,
-  });
+    // Create recurring alarm for sync
+    chrome.alarms.create(SYNC_ALARM_NAME, {
+        periodInMinutes: SUBSCRIPTION_CONSTANTS.SYNC_INTERVAL_HOURS * 60,
+    });
 }
 
 /**
@@ -43,35 +44,36 @@ export async function initialize() {
  * Detects state changes and notifies user
  */
 async function performSync() {
-  try {
-    console.log('Performing subscription sync');
+    try {
+        console.log("Performing subscription sync");
 
-    // First, try to sync using service worker context
-    const userId = await getCurrentUserId();
-    console.log('Current user ID for sync:', userId);
-    if (!userId) {
-      console.info('No user ID available for sync (not authenticated)');
-      return;
+        // First, try to sync using service worker context
+        const userId = await getCurrentUserId();
+        console.log("Current user ID for sync:", userId);
+        if (!userId) {
+            console.info("No user ID available for sync (not authenticated)");
+            return;
+        }
+
+        // Get current cached subscription
+        const oldSubscription = await accountService.getCachedSubscription();
+
+        // Sync from backend
+        const syncSuccess =
+            await accountService.syncSubscriptionFromBackend(userId);
+        if (!syncSuccess) {
+            console.warn("Subscription sync failed, will retry on next alarm");
+            return;
+        }
+
+        // Get updated subscription
+        const newSubscription = await accountService.getCachedSubscription();
+
+        // Detect and handle state changes
+        detectAndHandleStateChanges(oldSubscription, newSubscription);
+    } catch (error) {
+        console.error("Error during subscription sync:", error);
     }
-
-    // Get current cached subscription
-    const oldSubscription = await accountService.getCachedSubscription();
-
-    // Sync from backend
-    const syncSuccess = await accountService.syncSubscriptionFromBackend(userId);
-    if (!syncSuccess) {
-      console.warn('Subscription sync failed, will retry on next alarm');
-      return;
-    }
-
-    // Get updated subscription
-    const newSubscription = await accountService.getCachedSubscription();
-
-    // Detect and handle state changes
-    detectAndHandleStateChanges(oldSubscription, newSubscription);
-  } catch (error) {
-    console.error('Error during subscription sync:', error);
-  }
 }
 
 /**
@@ -80,39 +82,48 @@ async function performSync() {
  * @param {object} newSubscription - Current subscription state
  */
 function detectAndHandleStateChanges(oldSubscription, newSubscription) {
-  // Plan changed: free -> premium or premium -> free
-  if (oldSubscription.plan_type !== newSubscription.plan_type) {
-    handlePlanChange(oldSubscription.plan_type, newSubscription.plan_type);
-  }
+    // Plan changed: free -> premium or premium -> free
+    if (oldSubscription.plan_type !== newSubscription.plan_type) {
+        handlePlanChange(oldSubscription.plan_type, newSubscription.plan_type);
+    }
 
-  // Subscription status changed
-  if (oldSubscription.status !== newSubscription.status) {
-    handleStatusChange(newSubscription);
-  }
+    // Subscription status changed
+    if (oldSubscription.status !== newSubscription.status) {
+        handleStatusChange(newSubscription);
+    }
 
-  // Grace period started (payment failed)
-  if (newSubscription.status === 'grace_period' && oldSubscription.status !== 'grace_period') {
-    handleGracePeriodStarted(newSubscription);
-  }
+    // Grace period started (payment failed)
+    if (
+        newSubscription.status === "grace_period" &&
+        oldSubscription.status !== "grace_period"
+    ) {
+        handleGracePeriodStarted(newSubscription);
+    }
 
-  // Grace period ended (downgrade)
-  if (
-    oldSubscription.status === 'grace_period' &&
-    newSubscription.status !== 'grace_period' &&
-    newSubscription.plan_type === 'free'
-  ) {
-    handleGracePeriodEnded();
-  }
+    // Grace period ended (downgrade)
+    if (
+        oldSubscription.status === "grace_period" &&
+        newSubscription.status !== "grace_period" &&
+        newSubscription.plan_type === "free"
+    ) {
+        handleGracePeriodEnded();
+    }
 
-  // Trial ended -> active (first payment)
-  if (oldSubscription.status === 'trial' && newSubscription.status === 'active') {
-    handleTrialEnded();
-  }
+    // Trial ended -> active (first payment)
+    if (
+        oldSubscription.status === "trial" &&
+        newSubscription.status === "active"
+    ) {
+        handleTrialEnded();
+    }
 
-  // Subscription cancelled (downgrade pending)
-  if (newSubscription.status === 'cancelled' && oldSubscription.status !== 'cancelled') {
-    handleSubscriptionCancelled(newSubscription);
-  }
+    // Subscription cancelled (downgrade pending)
+    if (
+        newSubscription.status === "cancelled" &&
+        oldSubscription.status !== "cancelled"
+    ) {
+        handleSubscriptionCancelled(newSubscription);
+    }
 }
 
 /**
@@ -121,27 +132,27 @@ function detectAndHandleStateChanges(oldSubscription, newSubscription) {
  * @param {string} newPlan - New plan type
  */
 function handlePlanChange(oldPlan, newPlan) {
-  console.info(`Plan changed from ${oldPlan} to ${newPlan}`);
+    console.info(`Plan changed from ${oldPlan} to ${newPlan}`);
 
-  if (newPlan === 'premium') {
-    // Upgraded to premium
-    showNotification(
-      'Premium activated!',
-      'You can now create unlimited reminders. Enjoy!'
-    );
-    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-      plan_type: 'premium',
-    });
-  } else {
-    // Downgraded to free
-    showNotification(
-      'Plan downgraded',
-      'Your account is now on the free plan (5 reminder limit)'
-    );
-    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-      plan_type: 'free',
-    });
-  }
+    if (newPlan === "premium") {
+        // Upgraded to premium
+        showNotification(
+            "Premium activated!",
+            "You can now create unlimited reminders. Enjoy!",
+        );
+        notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+            plan_type: "premium",
+        });
+    } else {
+        // Downgraded to free
+        showNotification(
+            "Plan downgraded",
+            "Your account is now on the free plan (5 reminder limit)",
+        );
+        notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+            plan_type: "free",
+        });
+    }
 }
 
 /**
@@ -149,7 +160,7 @@ function handlePlanChange(oldPlan, newPlan) {
  * @param {object} subscription - New subscription
  */
 function handleStatusChange(subscription) {
-  console.info(`Subscription status: ${subscription.status}`);
+    console.info(`Subscription status: ${subscription.status}`);
 }
 
 /**
@@ -157,54 +168,54 @@ function handleStatusChange(subscription) {
  * @param {object} subscription - Subscription with grace period info
  */
 function handleGracePeriodStarted(subscription) {
-  console.info('Grace period started - payment failed');
+    console.info("Grace period started - payment failed");
 
-  const gracePeriodEndDate = new Date(subscription.grace_period_end_date);
-  const formattedDate = formatDate(gracePeriodEndDate);
+    const gracePeriodEndDate = new Date(subscription.grace_period_end_date);
+    const formattedDate = formatDate(gracePeriodEndDate);
 
-  showNotification(
-    'Payment failed',
-    `We'll retry charging your card. Your premium access will end on ${formattedDate} if we can't process payment.`,
-    { iconUrl: getErrorIconUrl() }
-  );
+    showNotification(
+        "Payment failed",
+        `We'll retry charging your card. Your premium access will end on ${formattedDate} if we can't process payment.`,
+        { iconUrl: getErrorIconUrl() },
+    );
 
-  notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-    status: 'grace_period',
-    grace_period_end_date: subscription.grace_period_end_date,
-  });
+    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+        status: "grace_period",
+        grace_period_end_date: subscription.grace_period_end_date,
+    });
 }
 
 /**
  * Handle grace period ended (auto-downgrade to free)
  */
 function handleGracePeriodEnded() {
-  console.info('Grace period ended - downgraded to free plan');
+    console.info("Grace period ended - downgraded to free plan");
 
-  showNotification(
-    'Subscription expired',
-    'Your account has been downgraded to free plan. Update your payment method to reactivate premium.'
-  );
+    showNotification(
+        "Subscription expired",
+        "Your account has been downgraded to free plan. Update your payment method to reactivate premium.",
+    );
 
-  notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-    plan_type: 'free',
-    status: 'active',
-  });
+    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+        plan_type: "free",
+        status: "active",
+    });
 }
 
 /**
  * Handle trial ended and converted to paid subscription
  */
 function handleTrialEnded() {
-  console.info('Trial ended - first payment processed');
+    console.info("Trial ended - first payment processed");
 
-  showNotification(
-    'Welcome to Premium!',
-    'Your trial has ended and first payment has been processed. Thanks for upgrading!'
-  );
+    showNotification(
+        "Welcome to Premium!",
+        "Your trial has ended and first payment has been processed. Thanks for upgrading!",
+    );
 
-  notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-    status: 'active',
-  });
+    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+        status: "active",
+    });
 }
 
 /**
@@ -212,21 +223,21 @@ function handleTrialEnded() {
  * @param {object} subscription - Cancelled subscription with downgrade date
  */
 function handleSubscriptionCancelled(subscription) {
-  console.info('Subscription cancelled');
+    console.info("Subscription cancelled");
 
-  const currentPeriodEnd = new Date(subscription.current_period_end);
-  const formattedDate = formatDate(currentPeriodEnd);
+    const currentPeriodEnd = new Date(subscription.current_period_end);
+    const formattedDate = formatDate(currentPeriodEnd);
 
-  showNotification(
-    'Subscription cancelled',
-    `Your premium access will end on ${formattedDate}. You'll return to the free plan then.`,
-    { iconUrl: getWarningIconUrl() }
-  );
+    showNotification(
+        "Subscription cancelled",
+        `Your premium access will end on ${formattedDate}. You'll return to the free plan then.`,
+        { iconUrl: getWarningIconUrl() },
+    );
 
-  notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
-    status: 'cancelled',
-    downgrade_date: subscription.current_period_end,
-  });
+    notifyPopup(MESSAGE_TYPES.SUBSCRIPTION_STATUS_CHANGED, {
+        status: "cancelled",
+        downgrade_date: subscription.current_period_end,
+    });
 }
 
 /**
@@ -236,14 +247,14 @@ function handleSubscriptionCancelled(subscription) {
  * @param {object} options - Additional notification options
  */
 function showNotification(title, message, options = {}) {
-  chrome.notifications.create({
-    type: 'basic',
-    title,
-    message,
-    iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
-    priority: 2,
-    ...options,
-  });
+    chrome.notifications.create({
+        type: "basic",
+        title,
+        message,
+        iconUrl: chrome.runtime.getURL("icons/icon-128.png"),
+        priority: 2,
+        ...options,
+    });
 }
 
 /**
@@ -253,19 +264,19 @@ function showNotification(title, message, options = {}) {
  * @param {object} data - State change data
  */
 function notifyPopup(messageType, data) {
-  // Send message to all tabs (popup will receive it if open)
-  // @ts-ignore
-  chrome.runtime.sendMessage(
-    {
-      type: messageType,
-      data,
-    },
-    (response) => {
-      if (chrome.runtime.lastError) {
-        console.debug('Popup not available for notification');
-      }
-    }
-  );
+    // Send message to all tabs (popup will receive it if open)
+    // @ts-ignore
+    chrome.runtime.sendMessage(
+        {
+            type: messageType,
+            data,
+        },
+        (response) => {
+            if (chrome.runtime.lastError) {
+                console.debug("Popup not available for notification");
+            }
+        },
+    );
 }
 
 /**
@@ -274,68 +285,95 @@ function notifyPopup(messageType, data) {
  * @returns {Promise<string|null>} User ID (JWT sub claim) or null
  */
 async function getCurrentUserId() {
-  try {
-    const token = await new Promise((resolve) => {
-      chrome.identity.getAuthToken({ interactive: false }, (tok) => {
-        if (chrome.runtime.lastError) {
-          console.debug('getAuthToken failed:', chrome.runtime.lastError.message);
-          resolve(null);
-        } else {
-          resolve(tok || null);
-        }
-      });
-    });
-
-    if (!token) {
-      console.debug('No token available');
-      return null;
-    }
-
-    console.debug('Token received, attempting to decode');
-    console.debug('Token value (first 50 chars):', typeof token === 'string' ? token.substring(0, 50) : typeof token);
-
-    // Handle edge cases: null string, undefined string, etc.
-    if (token === 'null' || token === 'undefined' || !token || typeof token !== 'string') {
-      console.warn('Token is not a valid string:', typeof token, token);
-      return null;
-    }
-
-    // JWT is three base64url segments: header.payload.signature
-    const parts = token.split('.');
-    if (parts.length < 3) {
-      console.warn('Token does not have expected JWT format (need 3 parts, got', parts.length + ')');
-      console.debug('Token parts:', parts.map((p, i) => `part${i}=[${p.length} chars]`).join(', '));
-      return null;
-    }
-
-    // Decode base64url payload (replace URL-safe chars, pad if needed)
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    
-    let payload;
     try {
-      const decoded = atob(padded);
-      payload = JSON.parse(decoded);
-    } catch (decodeError) {
-      console.error('Failed to decode JWT payload:', decodeError.message);
-      console.debug('Payload part:', parts[1]);
-      console.debug('Base64 string:', base64);
-      console.debug('Padded string:', padded);
-      console.debug('First 20 chars of base64:', base64.substring(0, 20));
-      return null;
-    }
+        const token = await new Promise((resolve) => {
+            chrome.identity.getAuthToken({ interactive: false }, (tok) => {
+                if (chrome.runtime.lastError) {
+                    console.debug(
+                        "getAuthToken failed:",
+                        chrome.runtime.lastError.message,
+                    );
+                    resolve(null);
+                } else {
+                    resolve(tok || null);
+                }
+            });
+        });
 
-    const userId = payload.sub || null;
-    if (userId) {
-      console.debug('Successfully extracted user ID from token');
-    } else {
-      console.warn('Token does not contain "sub" claim');
+        if (!token) {
+            console.debug("No token available");
+            return null;
+        }
+
+        const ProfileUserInfo = await new Promise((resolve) => {
+            chrome.identity.getProfileUserInfo((info) => {
+                resolve(info);
+            });
+        });
+
+        console.debug("Profile user info:", ProfileUserInfo);
+
+        console.debug("Token received, attempting to decode");
+        console.debug(
+            "Token value (first 50 chars):",
+            typeof token === "string" ? token.substring(0, 50) : typeof token,
+        );
+
+        // Handle edge cases: null string, undefined string, etc.
+        if (
+            token === "null" ||
+            token === "undefined" ||
+            !token ||
+            typeof token !== "string"
+        ) {
+            console.warn("Token is not a valid string:", typeof token, token);
+            return null;
+        }
+
+        console.log("jwt token: ", token);
+
+        // JWT is three base64url segments: header.payload.signature
+        const parts = token.split(".");
+        if (parts.length < 3) {
+            console.warn(
+                "Token does not have expected JWT format (need 3 parts, got",
+                parts.length + ")",
+            );
+            console.debug(
+                "Token parts:",
+                parts.map((p, i) => `part${i}=[${p.length} chars]`).join(", "),
+            );
+            return null;
+        }
+
+        // Decode base64url payload (replace URL-safe chars, pad if needed)
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+
+        let payload;
+        try {
+            const decoded = atob(padded);
+            payload = JSON.parse(decoded);
+        } catch (decodeError) {
+            console.error("Failed to decode JWT payload:", decodeError.message);
+            console.debug("Payload part:", parts[1]);
+            console.debug("Base64 string:", base64);
+            console.debug("Padded string:", padded);
+            console.debug("First 20 chars of base64:", base64.substring(0, 20));
+            return null;
+        }
+
+        const userId = payload.sub || null;
+        if (userId) {
+            console.debug("Successfully extracted user ID from token");
+        } else {
+            console.warn('Token does not contain "sub" claim');
+        }
+        return userId;
+    } catch (error) {
+        console.error("Error getting current user ID:", error);
+        return null;
     }
-    return userId;
-  } catch (error) {
-    console.error('Error getting current user ID:', error);
-    return null;
-  }
 }
 
 /**
@@ -344,11 +382,11 @@ async function getCurrentUserId() {
  * @returns {string} Formatted date string
  */
 function formatDate(date) {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+    return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    }).format(date);
 }
 
 /**
@@ -356,7 +394,7 @@ function formatDate(date) {
  * @returns {string} Icon URL
  */
 function getErrorIconUrl() {
-  return chrome.runtime.getURL('icons/icon-error.png');
+    return chrome.runtime.getURL("icons/icon-error.png");
 }
 
 /**
@@ -364,5 +402,5 @@ function getErrorIconUrl() {
  * @returns {string} Icon URL
  */
 function getWarningIconUrl() {
-  return chrome.runtime.getURL('icons/icon-warning.png');
+    return chrome.runtime.getURL("icons/icon-warning.png");
 }
